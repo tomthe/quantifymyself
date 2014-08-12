@@ -32,17 +32,47 @@ class CustomSlider(BoxLayout):
 
 
 class EnterView(BoxLayout):
+    dict={}
+
     val1 = NumericProperty()
     val1text = StringProperty("no String")
     val2 = NumericProperty()
     val2text = StringProperty("no string")
 
-    def build(self,dict):
-        print "dicht:",dict
-        if 'val1' in dict:
-            self.val1 = int(dict['val1'])
-            print self.val1
-        #ev.val2text = "halbwert"
+
+    def build(self):
+        print "build EnterView --- dict:    ", self.dict
+
+        self.clear_widgets()
+        if 'text' in self.dict:
+            label_text= Label()
+            label_text.text = self.dict['text']
+            self.add_widget(label_text)
+        if 'val1range' in self.dict:
+            cslider1 = CustomSlider()
+            cslider1.range=self.dict['val1range']
+            cslider1.ltext=self.dict['val1name']
+            self.add_widget(cslider1)
+        if 'val2range' in self.dict:
+            cslider2 = CustomSlider()
+            cslider2.range=self.dict['val2range']
+            cslider2.ltext=self.dict['val2name']
+            self.add_widget(cslider2)
+
+        bt_ok = Button()
+        bt_ok.text = "OK"
+        bt_ok.bind(on_press=self.log_entry)
+        self.add_widget(bt_ok)
+        bt_cancel = Button()
+        bt_cancel.text = "cancel"
+        bt_cancel.bind(on_press=self.cancelf)
+        self.add_widget(bt_cancel)
+
+    def cancelf(self,instance):
+        print "cancel..."
+
+    def log_entry(self,instance):
+        print "log..."
 
 class NewEnterView(BoxLayout):
     dict =[] #Button_dict of the level where the button is shown
@@ -84,6 +114,7 @@ class NewEnterView(BoxLayout):
         self.parent_button_view.show_first_level()
 
     def cancel(self):
+        self.parent_button_view.clear_widgets()
         self.parent_button_view.show_first_level()
 
 
@@ -143,7 +174,10 @@ class ButtonView(BoxLayout):
         elif type(instance.dict)==dict:
             #-->entry
             self.clear_widgets()
-            ev = EnterView(dict=instance.dict)
+            ev = EnterView()
+            ev.dict=instance.dict
+            ev.build()
+            print "ev..............", ev
             self.add_widget(ev)
 
 class QuantifyApp(App):
