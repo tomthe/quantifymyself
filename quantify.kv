@@ -1,10 +1,49 @@
 #:kivy 1.0
 
-
-
 <MainView>:
-
-
+    id:bo
+    
+<DateSlider>:
+    orientation:'horizontal'
+    syear:syear
+    smonth:smonth
+    sday:sday
+    shour:shour
+    sminute:sminute
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Year: ' + str(int(syear.value))
+        Slider:
+            id:syear
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Month: ' + str(int(smonth.value))
+        Slider:
+            id:smonth
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Day: ' + str(int(sday.value))
+        Slider:
+            id:sday
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Hour: ' + str(int(shour.value))
+        Slider:
+            id:shour
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Minute: ' + str(int(sminute.value))
+        Slider:
+            id:sminute
+    Button:
+        text:"dateslider!!!! wohoo"
+        on_press:root.test()
+	
 <CustomSlider>:
     sl:sl
     orientation:'horizontal'
