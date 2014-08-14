@@ -1,0 +1,51 @@
+[
+    {
+        "children": [
+            {
+                "text": "sleep start",
+                "type": "log"
+            },
+            {
+                "text": "sleep stop",
+                "type": "log",
+                "val1": "71"
+            }
+        ],
+        "text": "sleep",
+        "type": "submenu"
+    },
+    {
+        "children": [
+            {
+                "text": "sleep start",
+                "type": "log"
+            },
+            {
+                "text": "sleep stop",
+                "type": "log"
+            }
+        ],
+        "text": "health",
+        "type": "log"
+    },
+    {
+        "children": [
+            {
+                "text": "new Entry",
+                "type": "log",
+                "val1name": "bubu",
+                "val1range": [
+                    22.0,
+                    2222.0
+                ],
+                "val2name": "val2",
+                "val2range": [
+                    1.0,
+                    100.0
+                ]
+            }
+        ],
+        "text": "new Entry",
+        "type": "submenu"
+    }
+]

@@ -1,0 +1,153 @@
+#:kivy 1.0
+
+<MainView>:
+    id:bo
+    
+<ButtonView>:
+	orientation:'vertical'
+    
+<DateSlider>:
+    orientation:'horizontal'
+    syear:syear
+    smonth:smonth
+    sday:sday
+    shour:shour
+    sminute:sminute
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Year: ' + str(int(syear.value))
+        Slider:
+            id:syear
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Month: ' + str(int(smonth.value))
+        Slider:
+            id:smonth
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Day: ' + str(int(sday.value))
+        Slider:
+            id:sday
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Hour: ' + str(int(shour.value))
+        Slider:
+            id:shour
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Minute: ' + str(int(sminute.value))
+        Slider:
+            id:sminute
+	
+<CustomSlider>:
+    sl:sl
+    orientation:'horizontal'
+    Label:
+        size_hint_x:0.15
+        text:root.ltext
+    Label:
+        size_hint_x:0.15
+        text:str(sl.value)
+    Slider:
+        id:sl
+        min:root.min
+        max:root.max
+        value:root.value
+        on_value:root.change_value(self.value)
+        #on_touch_down:root.test()
+
+<EnterView>:
+    orientation:'vertical'
+    CustomSlider:
+        ltext:root.val1text
+        value:root.val1
+        range:(30,100)
+    CustomSlider:
+        ltext:root.val2text
+        value:root.val2
+
+<NewEnterView>:
+    ti_val1min:ti_val1min
+    ti_val1max:ti_val1max
+    ti_val1_text:ti_val1_text
+    ti_val2min:ti_val2min
+    ti_val2max:ti_val2max
+    ti_val2_text:ti_val2_text
+    ti_button_text:ti_button_text
+    cb_type_log:cb_type_log
+    cb_type_submenu:cb_type_submenu
+    orientation:'vertical'
+
+    BoxLayout:
+        orientation:'horizontal'
+        Label:
+            text:"Type: log (new entry):"
+        CheckBox:
+            id:cb_type_log
+            group:'type'
+            active:True
+    BoxLayout:
+        orientation:'horizontal'
+        Label:
+            text:"Type: new Submenu:"
+        CheckBox:
+            id:cb_type_submenu
+            group:'type'
+    BoxLayout:
+        orientation:'horizontal'
+        Label:
+            text:"Value 1 Name: "
+        TextInput:
+            id:ti_val1_text
+            text:'val1'
+    BoxLayout:
+        orientation:'horizontal'
+        Label:
+            text:'value1 min'
+        TextInput:
+            id:ti_val1min
+            text:'1'
+        Label:
+            text:'value1 max'
+        TextInput:
+            id:ti_val1max
+            text:'100'
+    BoxLayout:
+        orientation:'horizontal'
+        Label:
+            text:"Value 2 Name: "
+        TextInput:
+            id:ti_val2_text
+            text:'val2'
+    BoxLayout:
+        orientation:'horizontal'
+        Label:
+            text:'value2 min'
+        TextInput:
+            id:ti_val2min
+            text:'1'
+        Label:
+            text:'value2 max'
+        TextInput:
+            id:ti_val2max
+            text:'100'
+    BoxLayout:
+        orientation:'horizontal'
+        Label:
+            text:"Button-Text"
+        TextInput:
+            id:ti_button_text
+            text:'new Entry'
+    BoxLayout:
+        orientation:'horizontal'
+        Button:
+            text:'OK'
+            on_press:root.create_new_button()
+        Button:
+            text:'Cancel'
+            on_press:root.cancel()
