@@ -7,9 +7,10 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ListProperty, StringProperty, ObjectProperty, NumericProperty
 from kivy.app import App
-from json import loads
 from time import strftime
 from datetime import datetime
+
+from json import load, dump
 
 kivy.require('1.0.7')
 
@@ -30,7 +31,7 @@ class CustomSlider(BoxLayout):
     def on_range(self,instance,value):
         self.min = value[0]
         self.max = value[1]
-        print self.range, self.min, self.sl.range, self.sl.min
+        print "customSlider - on_range:  ",instance,value,self.range, self.min, self.sl.range, self.sl.min
 
 class DateSlider(BoxLayout):
     syear = ObjectProperty()
@@ -74,34 +75,41 @@ class DateSlider(BoxLayout):
     def get_datetime(self):
         return datetime(int(self.syear.value), int(self.smonth.value), int(self.sday.value), int(self.shour.value), int(self.sminute.value))
 
-    def test(self):
-        print self.syear,self.syear.value
-        print self.get_datetime()
 
 class EnterView(BoxLayout):
-    dict={}
+    #dict={}
+    categories = []
     parent_button_view =None
     val1 = NumericProperty()
     val1text = StringProperty("no String")
     val2 = NumericProperty()
     val2text = StringProperty("no string")
+    dsstart = ObjectProperty()
+    dsend = ObjectProperty()
 
+    def __init__(self, **kwargs):
+        self.dict=kwargs['dict']
+        super(EnterView, self).__init__(**kwargs)
+        self.build()
 
     def build(self):
+        self.clear_widgets()
         print "build EnterView --- dict:    ", self.dict
 
-        self.clear_widgets()
-        #----------
-        #datetime...
-        dsstart = DateSlider()
-        self.add_widget(dsstart)
-        #now.
-
-#----------
         label_text= Label()
         if 'text' in self.dict:
             label_text.text = self.dict['text']
         self.add_widget(label_text)
+
+        #----------
+        #datetime...
+        self.dsstart = DateSlider()
+        self.add_widget(self.dsstart)
+
+        self.dsend = DateSlider()
+        self.add_widget(self.dsend)
+
+#----------
         if 'val1range' in self.dict:
             cslider1 = CustomSlider()
             cslider1.range=self.dict['val1range']
@@ -122,17 +130,30 @@ class EnterView(BoxLayout):
         bt_cancel.bind(on_press=self.cancelf)
         self.add_widget(bt_cancel)
 
-    def cancelf(self,instance):
-        print "cancel..."
+    def cancelf(self,instance=None):
+        print "cancel...", self.dsstart.get_datetime(),self.dsend.get_datetime()
         self.parent_button_view.clear_widgets()
         self.parent_button_view.show_first_level()
 
-    def log_entry(self,instance):
+    def log_entry(self,instance=None):
         new_log_entry = {}
+        new_log_entry['starttime'] = str(self.dsstart.get_datetime())
+        new_log_entry['endtime'] = str(self.dsend.get_datetime())
 
+        new_log_entry['value1'] = str(self.val1)
+        new_log_entry['value2'] = str(self.val2)
 
+        if 'text' in self.dict:
+            new_log_entry['text'] = str(self.dict['text'])
+        if 'type' in self.dict:
+            new_log_entry['type'] = str(self.dict['type'])
+        i=1
+        for category in self.categories:
+            new_log_entry['cat' + str(int(i))] = category
+            i+=1
         self.parent_button_view.log.append(new_log_entry)
-        print "log..."
+        print "log...  ", new_log_entry
+        self.cancelf()
 
 class NewEnterView(BoxLayout):
     dict =[] #Button_dict of the level where the button is shown
@@ -180,6 +201,7 @@ class NewEnterView(BoxLayout):
 
 class ButtonView(BoxLayout):
     button_dict =[]#[{'type':'submenu','text':'sleep','children':[{'type':'log','text':'sleep start'},{'type':'log','text':'sleep stop'}]} ]
+    categories =[]
     app = None
     log=[]
 
@@ -189,6 +211,7 @@ class ButtonView(BoxLayout):
 
     def show_first_level(self):
         print "show_first_level", self.button_dict,self.log
+        categories = []
         for button in self.button_dict:
             print button
             bt = Button()
@@ -201,10 +224,14 @@ class ButtonView(BoxLayout):
             self.add_widget(bt)
         self.add_add_button(dict=self.button_dict)
 
-    def show_button_dict(self,bdict):
+    def show_button_dict(self,bdict,text):
         self.clear_widgets()
+        self.categories.append(text)
+        categoryname_Label = Label()
+        categoryname_Label.text = text
+        self.add_widget(categoryname_Label)
         for button in bdict:
-            print button
+            print "buttondict - one button: ", button
             bt = Button()
             bt.text = button['text']
             bt.dict = button
@@ -228,26 +255,38 @@ class ButtonView(BoxLayout):
         self.add_widget(av)
 
     def buttonpress(self,instance,value =None):
-        print "buttonpress..., ", instance, ";.. value: ", value, instance.dict
+        print "buttonpress..., ", instance, ";.. value: ", value, instance.dict, instance.text
 
         if type(instance.dict)==list:
             #-->submenu
-            self.show_button_dict(instance.dict)
+            self.show_button_dict(instance.dict,instance.text)
         elif type(instance.dict)==dict:
             #-->entry
+            print "buttonview-buttonpress-instance.dict : ", instance.dict
             self.clear_widgets()
-            ev = EnterView()
-            ev.dict=instance.dict
+            ev = EnterView(dict=instance.dict)
+            #ev.dict=instance.dict
+            ev.categories =  self.categories
             ev.parent_button_view=self
-            ev.build()
             print "ev..............", ev
             self.add_widget(ev)
 
 class QuantifyApp(App):
-    button_dict =[{'type':'submenu','text':'sleep','children':[{'type':'log','text':'sleep start'},{'type':'log','val1':'71','text':'sleep stop'}]},{'type':'log','text':'health','children':[{'type':'log','text':'sleep start'},{'type':'log','text':'sleep stop'}]} ]
-    log = [{'datestart':'2014-05-22-13:24:43','text':'sleep_start'}]
+    button_dict = []
+    log =[]
+    filename_buttondict = 'buttons.json'
+    filename_logdict = 'log.json'
 
     def build(self):
+        try:
+            self.button_dict = self.loadJson(self.filename_buttondict)
+        except Exception,e:
+            self.button_dict =[{'type':'submenu','text':'sleep','children':[{'type':'log','text':'sleep start'},{'type':'log','val1':'71','text':'sleep stop'}]},{'type':'log','text':'health','children':[{'type':'log','text':'sleep start'},{'type':'log','text':'sleep stop'}]} ]
+        try:
+            self.log = self.loadJson(self.filename_logdict)
+        except Exception,e:
+            log = [{'datestart':'2014-05-22-13:24:43','text':'sleep_start'}]
+
         bv = ButtonView(button_dict=self.button_dict,log=self.log)
         bv.button_dict = self.button_dict
         bv.log = self.log
@@ -255,6 +294,26 @@ class QuantifyApp(App):
         print "build app...", self.button_dict
         bv.show_first_level()
         return bv
+
+    def on_pause(self):
+        self.writeJson(self.filename_buttondict, self.button_dict)
+        self.writeJson(self.filename_logdict, self.log)
+        return True
+
+    def on_stop(self):
+        self.on_pause()
+
+    def loadJson(self,filename):
+        with open(filename, 'r') as input:
+            data = load(input) #json.load
+        print 'Read json from: ' + filename
+        return data
+
+    def writeJson(self,filename, data):
+        with open(filename, 'w') as output:
+            dump(data, output, sort_keys=True, indent=4, separators=(',', ': ')) #json.dump
+        print 'Wrote json to: ' + filename
+
 
 if __name__ == '__main__':
     QuantifyApp().run()
