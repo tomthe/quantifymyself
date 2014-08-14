@@ -1,0 +1,46 @@
+[
+    {
+        "datestart": "2014-05-22-13:24:43",
+        "text": "sleep_start"
+    },
+    {
+        "cat1": "health",
+        "endtime": "2014-08-14 14:15:00",
+        "starttime": "2014-07-14 17:15:00",
+        "text": "sleep start",
+        "type": "log",
+        "value1": "0",
+        "value2": "0"
+    },
+    {
+        "cat1": "health",
+        "cat2": "sleep",
+        "endtime": "2014-08-14 20:34:00",
+        "starttime": "2014-08-14 14:15:00",
+        "text": "sleep stop",
+        "type": "log",
+        "value1": "0",
+        "value2": "0"
+    },
+    {
+        "cat1": "health",
+        "cat2": "sleep",
+        "cat3": "new Entry",
+        "cat4": "new Entry",
+        "endtime": "2014-08-14 14:15:00",
+        "starttime": "2015-04-14 14:15:00",
+        "text": "new Entry",
+        "type": "log",
+        "value1": "0",
+        "value2": "0"
+    },
+    {
+        "cat1": "new Entry",
+        "endtime": "2014-08-22 11:59:00",
+        "starttime": "2014-08-14 14:49:00",
+        "text": "new Entry",
+        "type": "log",
+        "value1": "0",
+        "value2": "0"
+    }
+]
