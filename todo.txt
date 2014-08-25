@@ -1,8 +1,12 @@
 todo
 	file handling
-	
+		save/load  buttons and logs  as json-file [ Done ]
+		import Taplog-button-db and Taplog-log [ not important ]
 	create button
-	
+		nicer?
+		more options?
 	create entry
-	
+		Text-field!
+		better slider?!
 	show logs
+		text-view/table-view like in taplog

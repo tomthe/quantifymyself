@@ -1,6 +1,7 @@
 import kivy
 from kivy.uix.label import Label
 from kivy.uix.button import Button
+from kivy.uix.actionbar import ActionBar
 from kivy.uix.modalview import ModalView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
@@ -211,7 +212,7 @@ class ButtonView(BoxLayout):
 
     def show_first_level(self):
         print "show_first_level", self.button_dict,self.log
-        categories = []
+        self.categories = []
         for button in self.button_dict:
             print button
             bt = Button()
@@ -271,6 +272,19 @@ class ButtonView(BoxLayout):
             print "ev..............", ev
             self.add_widget(ev)
 
+class ListEntry(BoxLayout):
+
+    def __init__(self, **kwargs):
+        self.entry=kwargs['entry']
+        super(ListEntry, self).__init__(**kwargs)
+        print self.entry
+        for item in self.entry:
+            print item, self.entry[item]
+            lab = Label()
+            lab.text = self.entry[item]
+            self.add_widget(lab)
+            self.height = lab.texture_size[1]
+
 class QuantifyApp(App):
     button_dict = []
     log =[]
@@ -287,13 +301,40 @@ class QuantifyApp(App):
         except Exception,e:
             log = [{'datestart':'2014-05-22-13:24:43','text':'sleep_start'}]
 
+        self.mainBL = BoxLayout()
+        self.mainBL.orientation = 'vertical'
+        actionbar = ActionBar()
+        self.mainBL.add_widget(actionbar)
+        but1 = Button()
+        but1.text = "test"
+        but1.height = "30dp"
+        but1.bind(on_press=self.list)
+        self.mainBL.add_widget(but1)
+
         bv = ButtonView(button_dict=self.button_dict,log=self.log)
         bv.button_dict = self.button_dict
         bv.log = self.log
         bv.app=self
         print "build app...", self.button_dict
         bv.show_first_level()
-        return bv
+
+        self.mainBL.add_widget(bv)
+        return self.mainBL
+
+    def list(self,instance):
+        scrollview= ScrollView()
+        boxlayout = BoxLayout()
+        boxlayout.height =220
+        boxlayout.orientation = 'vertical'
+        boxlayout.size_hint_y =None
+        for entry in self.log:
+            entryp = ListEntry(entry=entry)
+            boxlayout.add_widget(entryp)
+            boxlayout.height += entryp.height
+            print "hhh: ", entryp.height, boxlayout.height
+        scrollview.add_widget(boxlayout)
+        self.mainBL.add_widget(scrollview )
+        return True# scrollview
 
     def on_pause(self):
         self.writeJson(self.filename_buttondict, self.button_dict)
