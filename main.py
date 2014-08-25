@@ -1,7 +1,8 @@
 import kivy
 from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.uix.actionbar import ActionBar
+from kivy.uix.widget import Widget
+from kivy.uix.actionbar import ActionBar,ActionButton,ActionView
 from kivy.uix.modalview import ModalView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
@@ -14,6 +15,57 @@ from datetime import datetime
 from json import load, dump
 
 kivy.require('1.0.7')
+
+
+class QuantButton(Widget):
+    '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
+    color = ListProperty([0.4,0.5,0.5,1])
+    text = StringProperty(",")
+    timeStartPress = None
+
+    def __init__(self, **kwargs):
+        print "init quantbutton",kwargs
+        self.register_event_type('on_long_press')
+        self.register_event_type('on_press')
+        self.dict = kwargs['dict']
+        print 'children' in self.dict, len(self.dict), self.dict
+        if 'type' in self.dict:
+            print "type ist drin",
+            if self.dict['type']=="log":
+                self.color =[0.5,0.4,0.4,1]
+        super(QuantButton, self).__init__(**kwargs)
+
+    def on_touch_down(self,touch):
+        print "quantmove ",touch
+        if self.collide_point(*touch.pos):
+            self.color = [0.3,0.5,0.5,1]
+            touch.grab(self)
+            self.timeStartPress = datetime.now()
+            # accept the touch.
+            return True
+
+
+    def on_touch_up(self, touch):
+        # here, you don't check if the touch collides or things like that.
+        # you just need to check if it's a grabbed touch event
+        if touch.grab_current is self:
+            # don't forget to ungrab ourself, or you might have side effects
+            touch.ungrab(self)
+            if ((datetime.now() - self.timeStartPress).total_seconds() > 1.2):
+                print "long press!"
+                self.dispatch('on_long_press',touch)
+            else:
+                self.dispatch('on_press',touch)
+            # and accept the last up
+            return True
+
+    def on_long_press(self,instance):
+        print "on_long_press", instance
+
+
+    def on_press(self,instance):
+        print "on_press",instance
+
 
 class CustomSlider(BoxLayout):
     ltext = StringProperty()
@@ -214,13 +266,12 @@ class ButtonView(BoxLayout):
         print "show_first_level", self.button_dict,self.log
         self.categories = []
         for button in self.button_dict:
-            print button
-            bt = Button()
-            bt.text= button['text']
+            print "show first level: ", button
+
             if 'children' in button:
-                bt.dict=button['children']
+                bt = QuantButton(text=button['text'],dict=button['children'],type='submenu')
             else:
-                bt.dict = button
+                bt = QuantButton(text= button['text'],dict=button,type='log')
             bt.bind(on_press=self.buttonpress)
             self.add_widget(bt)
         self.add_add_button(dict=self.button_dict)
@@ -233,9 +284,10 @@ class ButtonView(BoxLayout):
         self.add_widget(categoryname_Label)
         for button in bdict:
             print "buttondict - one button: ", button
-            bt = Button()
-            bt.text = button['text']
-            bt.dict = button
+            if 'children' in button:
+                bt = QuantButton(text=button['text'],dict=button['children'],type='submenu')
+            else:
+                bt = QuantButton(text= button['text'],dict=button,type='log')
             bt.bind(on_press=self.buttonpress)
             self.add_widget(bt)
         self.add_add_button(dict=bdict)
@@ -304,13 +356,15 @@ class QuantifyApp(App):
         self.mainBL = BoxLayout()
         self.mainBL.orientation = 'vertical'
         actionbar = ActionBar()
-        self.mainBL.add_widget(actionbar)
-        but1 = Button()
+        actionview = ActionView()
+        actionbar.add_widget(actionview)
+        but1 =Button()# ActionButton()
         but1.text = "test"
         but1.height = "30dp"
         but1.bind(on_press=self.list)
+        #actionview.add_widget(but1)
+        #self.mainBL.add_widget(actionbar)
         self.mainBL.add_widget(but1)
-
         bv = ButtonView(button_dict=self.button_dict,log=self.log)
         bv.button_dict = self.button_dict
         bv.log = self.log
@@ -322,6 +376,7 @@ class QuantifyApp(App):
         return self.mainBL
 
     def list(self,instance):
+        self.mainBL.clear_widgets()
         scrollview= ScrollView()
         boxlayout = BoxLayout()
         boxlayout.height =220

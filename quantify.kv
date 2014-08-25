@@ -1,5 +1,20 @@
 #:kivy 1.0
-
+<QuantButton>:
+	canvas:
+		Color:
+			rgba:root.color
+		Rectangle:
+			size: root.size
+			pos: root.pos
+		Color:
+			rgba:[0,0,0,1]
+		Line:
+			rectangle:[root.x+2,root.y+2,root.width-2,root.height-2]
+	Label:
+		pos: root.pos
+		size: root.size
+		text: root.text
+		
 <MainView>:
     id:bo
     
@@ -86,6 +101,13 @@
     BoxLayout:
         orientation:'horizontal'
         Label:
+            text:"Button-Text"
+        TextInput:
+            id:ti_button_text
+            text:'new Entry'
+    BoxLayout:
+        orientation:'horizontal'
+        Label:
             text:"Type: log (new entry):"
         CheckBox:
             id:cb_type_log
@@ -136,13 +158,6 @@
         TextInput:
             id:ti_val2max
             text:'100'
-    BoxLayout:
-        orientation:'horizontal'
-        Label:
-            text:"Button-Text"
-        TextInput:
-            id:ti_button_text
-            text:'new Entry'
     BoxLayout:
         orientation:'horizontal'
         Button:
