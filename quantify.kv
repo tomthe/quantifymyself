@@ -9,17 +9,36 @@
 		Color:
 			rgba:[0,0,0,1]
 		Line:
-			rectangle:[root.x+2,root.y+2,root.width-2,root.height-2]
+			rectangle:[root.x+1,root.y+1,root.width-1,root.height-1]
 	Label:
 		pos: root.pos
 		size: root.size
 		text: root.text
 		
 <MainView>:
-    id:bo
-    
+    #bv:bv
+    orientation:'vertical'
+    ActionBar:
+        #pos_hint: {'top':1}
+        ActionView:
+            use_separator: True
+            ActionPrevious:
+                title: 'Quantify Myself'
+                with_previous: False
+            ActionOverflow:
+            ActionButton:
+                text: 'Home'
+                on_press:root.show_home_view()
+            ActionButton:
+                text: 'List Log'
+                on_press:root.list_log()
+            ActionButton:
+                text: 'Btn1'
+
 <ButtonView>:
-	orientation:'vertical'
+	orientation:'lr-tb'
+	padding:[3,3,3,3]
+	spacing:[2,2]
     
 <DateSlider>:
     orientation:'horizontal'

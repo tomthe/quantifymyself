@@ -5,9 +5,11 @@ from kivy.uix.widget import Widget
 from kivy.uix.actionbar import ActionBar,ActionButton,ActionView
 from kivy.uix.modalview import ModalView
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.stacklayout import StackLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ListProperty, StringProperty, ObjectProperty, NumericProperty
+from kivy.logger import Logger
 from kivy.app import App
 from time import strftime
 from datetime import datetime
@@ -252,19 +254,25 @@ class NewEnterView(BoxLayout):
         self.parent_button_view.show_first_level()
 
 
-class ButtonView(BoxLayout):
+
+class ButtonView(StackLayout):
     button_dict =[]#[{'type':'submenu','text':'sleep','children':[{'type':'log','text':'sleep start'},{'type':'log','text':'sleep stop'}]} ]
     categories =[]
     app = None
     log=[]
 
-    def build(self):
-        print "blabla"
+
+    def __init__(self, **kwargs):
+        super(ButtonView, self).__init__(**kwargs)
+        self.button_dict=kwargs['button_dict']
+        self.log = kwargs['log']
+        self.app = kwargs['app']
         self.show_first_level()
 
     def show_first_level(self):
-        print "show_first_level", self.button_dict,self.log
+        print "show_first_level 1 ", self.button_dict,self.log
         self.categories = []
+        self.clear_widgets()
         for button in self.button_dict:
             print "show first level: ", button
 
@@ -273,6 +281,8 @@ class ButtonView(BoxLayout):
             else:
                 bt = QuantButton(text= button['text'],dict=button,type='log')
             bt.bind(on_press=self.buttonpress)
+            bt.size_hint = (None,None)
+            bt.size = [self.width/2-5, self.height /6-5]
             self.add_widget(bt)
         self.add_add_button(dict=self.button_dict)
 
@@ -281,6 +291,8 @@ class ButtonView(BoxLayout):
         self.categories.append(text)
         categoryname_Label = Label()
         categoryname_Label.text = text
+        categoryname_Label.size_hint = (None,None)
+        categoryname_Label.size = [self.width -5, self.height /6-5]
         self.add_widget(categoryname_Label)
         for button in bdict:
             print "buttondict - one button: ", button
@@ -289,11 +301,15 @@ class ButtonView(BoxLayout):
             else:
                 bt = QuantButton(text= button['text'],dict=button,type='log')
             bt.bind(on_press=self.buttonpress)
+            bt.size_hint = (None,None)
+            bt.size = [self.width/2-5, self.height /6-5]
             self.add_widget(bt)
         self.add_add_button(dict=bdict)
 
     def add_add_button(self,dict):
         bt = Button(text="+")
+        bt.size_hint = (None,None)
+        bt.size  = (self.width /2-5, self.height/6-5)
         bt.dict = dict
         bt.parent_button_view = self
         bt.bind(on_press=self.add_button)
@@ -324,6 +340,9 @@ class ButtonView(BoxLayout):
             print "ev..............", ev
             self.add_widget(ev)
 
+    def on_size(self,instance,value):
+        self.show_first_level()
+
 class ListEntry(BoxLayout):
 
     def __init__(self, **kwargs):
@@ -337,6 +356,43 @@ class ListEntry(BoxLayout):
             self.add_widget(lab)
             self.height = lab.texture_size[1]
 
+class MainView(BoxLayout):
+    bv = None
+    app = None
+    log =None
+    button_dic =None
+
+    def __init__(self, **kwargs):
+        #self.entry=kwargs['entry']
+        super(MainView, self).__init__(**kwargs)
+
+        self.button_dict=kwargs['button_dict']
+        self.log = kwargs['log']
+        self.app = kwargs['app']
+
+        self.bv = ButtonView(button_dict=self.button_dict,log=self.log,app=self.app)
+
+        self.add_widget(self.bv)
+
+
+    def list_log(self,instance=None):
+        self.bv.clear_widgets()
+        scrollview= ScrollView()
+        boxlayout = BoxLayout()
+        boxlayout.height =220
+        boxlayout.orientation = 'vertical'
+        boxlayout.size_hint_y =None
+        for entry in self.log:
+            entryp = ListEntry(entry=entry)
+            boxlayout.add_widget(entryp)
+            boxlayout.height += entryp.height
+            print "hhh: ", entryp.height, boxlayout.height
+        scrollview.add_widget(boxlayout)
+        self.bv.add_widget(scrollview )
+
+    def show_home_view(self):
+        self.bv.show_first_level()
+
 class QuantifyApp(App):
     button_dict = []
     log =[]
@@ -347,32 +403,15 @@ class QuantifyApp(App):
         try:
             self.button_dict = self.loadJson(self.filename_buttondict)
         except Exception,e:
+            Logger.error('failed to load button-db, e: ' + str(e))
             self.button_dict =[{'type':'submenu','text':'sleep','children':[{'type':'log','text':'sleep start'},{'type':'log','val1':'71','text':'sleep stop'}]},{'type':'log','text':'health','children':[{'type':'log','text':'sleep start'},{'type':'log','text':'sleep stop'}]} ]
         try:
             self.log = self.loadJson(self.filename_logdict)
         except Exception,e:
+            Logger.error('failed to load log-db, e: ' + str(e))
             log = [{'datestart':'2014-05-22-13:24:43','text':'sleep_start'}]
 
-        self.mainBL = BoxLayout()
-        self.mainBL.orientation = 'vertical'
-        actionbar = ActionBar()
-        actionview = ActionView()
-        actionbar.add_widget(actionview)
-        but1 =Button()# ActionButton()
-        but1.text = "test"
-        but1.height = "30dp"
-        but1.bind(on_press=self.list)
-        #actionview.add_widget(but1)
-        #self.mainBL.add_widget(actionbar)
-        self.mainBL.add_widget(but1)
-        bv = ButtonView(button_dict=self.button_dict,log=self.log)
-        bv.button_dict = self.button_dict
-        bv.log = self.log
-        bv.app=self
-        print "build app...", self.button_dict
-        bv.show_first_level()
-
-        self.mainBL.add_widget(bv)
+        self.mainBL = MainView(button_dict=self.button_dict,log=self.log,app=self)
         return self.mainBL
 
     def list(self,instance):
@@ -389,6 +428,9 @@ class QuantifyApp(App):
             print "hhh: ", entryp.height, boxlayout.height
         scrollview.add_widget(boxlayout)
         self.mainBL.add_widget(scrollview )
+
+
+
         return True# scrollview
 
     def on_pause(self):
