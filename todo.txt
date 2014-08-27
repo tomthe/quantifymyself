@@ -16,6 +16,8 @@ todo
 	create entry
 		Text-field!
 		better slider?!
+	logs
+		
 	show logs
 		text-view/table-view like in taplog
 			with the option to change an entry
