@@ -1,46 +1,99 @@
 [
     {
-        "datestart": "2014-05-22-13:24:43",
-        "text": "sleep_start"
+        "datetimes": [
+            {
+                "datetime": "2014-08-17 19:33",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-08-22 19:33",
+                "timename": "time1"
+            }
+        ],
+        "entryname": "bullo",
+        "note": "sdfw",
+        "type": "log",
+        "values": [
+            {
+                "valname": "produktivit\u00e4t",
+                "value": 5.666666666666665
+            },
+            {
+                "valname": "value",
+                "value": 5.683593749999999
+            },
+            {
+                "valname": "spass",
+                "value": 3.0598958333333326
+            }
+        ]
     },
     {
-        "cat1": "health",
-        "endtime": "2014-08-14 14:15:00",
-        "starttime": "2014-07-14 17:15:00",
-        "text": "sleep start",
+        "datetimes": [
+            {
+                "datetime": "2014-08-26 23:59",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-08-27 20:12",
+                "timename": "ende"
+            },
+            {
+                "datetime": "2014-08-27 20:13",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-08-27 22:13",
+                "timename": "ende"
+            }
+        ],
+        "entryname": "schlaf",
+        "id": 4355,
+        "note": "ganz ok!",
         "type": "log",
-        "value1": "0",
-        "value2": "0"
+        "values": [
+            {
+                "valname": "baba",
+                "value": 1
+            },
+            {
+                "valname": "faoug",
+                "value": 1
+            },
+            {
+                "valname": "baba",
+                "value": 4.600260416666665
+            },
+            {
+                "valname": "faoug",
+                "value": 6.259114583333332
+            }
+        ]
     },
     {
-        "cat1": "health",
-        "cat2": "sleep",
-        "endtime": "2014-08-14 20:34:00",
-        "starttime": "2014-08-14 14:15:00",
-        "text": "sleep stop",
+        "datetimes": [
+            {
+                "datetime": "2014-08-27 20:14",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-08-27 23:00",
+                "timename": "ende"
+            }
+        ],
+        "entryname": "schlaf",
+        "id": 4355,
+        "note": "nanar",
         "type": "log",
-        "value1": "0",
-        "value2": "0"
-    },
-    {
-        "cat1": "health",
-        "cat2": "sleep",
-        "cat3": "new Entry",
-        "cat4": "new Entry",
-        "endtime": "2014-08-14 14:15:00",
-        "starttime": "2015-04-14 14:15:00",
-        "text": "new Entry",
-        "type": "log",
-        "value1": "0",
-        "value2": "0"
-    },
-    {
-        "cat1": "new Entry",
-        "endtime": "2014-08-22 11:59:00",
-        "starttime": "2014-08-14 14:49:00",
-        "text": "new Entry",
-        "type": "log",
-        "value1": "0",
-        "value2": "0"
+        "values": [
+            {
+                "valname": "baba",
+                "value": 1
+            },
+            {
+                "valname": "faoug",
+                "value": 1
+            }
+        ]
     }
 ]
