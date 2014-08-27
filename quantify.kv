@@ -14,7 +14,7 @@
 		pos: root.pos
 		size: root.size
 		text: root.text
-		
+
 <MainView>:
     #bv:bv
     orientation:'vertical'
@@ -33,13 +33,17 @@
                 text: 'List Log'
                 on_press:root.list_log()
             ActionButton:
-                text: 'Btn1'
+                text: 'List Log2'
+                on_press:root.list_log2()
+            ActionButton:
+                text: 'Save'
+                on_press:app.save()
 
 <ButtonView>:
 	orientation:'lr-tb'
 	padding:[3,3,3,3]
 	spacing:[2,2]
-    
+
 <DateSlider>:
     orientation:'horizontal'
     syear:syear
@@ -77,7 +81,7 @@
             text:'Minute: ' + str(int(sminute.value))
         Slider:
             id:sminute
-	
+
 <CustomSlider>:
     sl:sl
     orientation:'horizontal'
@@ -123,7 +127,7 @@
             text:"Button-Text"
         TextInput:
             id:ti_button_text
-            text:'new Entry'
+            text:''
     BoxLayout:
         orientation:'horizontal'
         Label:
