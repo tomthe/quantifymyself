@@ -210,6 +210,8 @@ class EnterView2(BoxLayout):
 
     def log_entry(self,instance=None):
         new_log_entry = {}
+        #ID = randint(0,999999) #str(randint(100,9999))
+        #new_log_entry['log_id']=ID
         datetimes=[]
         for datetime in self.calendars:
             datetimes_new = {}
@@ -232,8 +234,8 @@ class EnterView2(BoxLayout):
             new_log_entry['text'] = "None"
         if 'type' in self.dict:
             new_log_entry['type'] = str(self.dict['type'])
-        if 'id' in self.dict:
-            new_log_entry['id']=self.dict['id']
+        if 'button_id' in self.dict:
+            new_log_entry['button_id']=self.dict['button_id']
 
         new_log_entry['note'] = self.note_input.text
 
@@ -242,8 +244,88 @@ class EnterView2(BoxLayout):
             catstring += category + '|'
 
         self.parent_button_view.log.append(new_log_entry)
+        self.parent_button_view.log2.append(self.log_entry_2_log2(new_log_entry))
         print "log...  ", new_log_entry
         self.cancelf()
+
+    def log_entry_2_log2(self,log1):
+        #converts a dict-log-entry into a list-based log-entry
+        log2=[]
+        #button_id, entryname,type,note,timename1,time1,timename2,time2,timename3,time3,timename4,time4,valuename1,value1,valuename2,value2,valuename3,value3,valuename4,value4
+        if 'button_id' in log1:
+            log2.append(log1['button_id'])
+        else:
+            log2.append(0)
+        if 'entryname' in log1:
+            log2.append(log1['entryname'])
+        else:
+            log2.append('no_name')
+        if 'type' in log1:
+            log2.append(log1['type'])
+        else:
+            log2.append('no_type')
+        if 'note' in log1:
+            log2.append(log1['note'])
+        else:
+            log2.append('no_note')
+
+        if 'datetimes' in log1:
+            log1time = log1['datetimes']
+            i=0
+            for time in log1time:
+                i += 1
+                if i <=4:
+                    try:
+                        log2.append(time['timename'])
+                        log2.append(time['datetime'])
+                    except Exception, e:
+                        print "Error, couldnt add time1 " +str(i)+ str(e) + ";  " + time
+                        log2.append("no_timename")
+                        log2.append("no_time")
+            if i<4:
+                for j in xrange(i,4,1):
+                    log2.append("no_timename")
+                    log2.append("no_time")
+
+        else:
+            log2.append('no_timename1')
+            log2.append('no_time1')
+            log2.append('no_timename2')
+            log2.append('no_time2')
+            log2.append('no_timename3')
+            log2.append('no_time3')
+            log2.append('no_timename4')
+            log2.append('no_time4')
+
+
+        if 'values' in log1:
+            log1values = log1['values']
+            i=0
+            for value in log1values:
+                i += 1
+                if i <=4:
+                    try:
+                        log2.append(value['valname'])
+                        log2.append(value['value'])
+                    except Exception, e:
+                        print "Error, couldnt add value "+str(i) + str(e) + ";  " + value
+                        log2.append("no_valname")
+                        log2.append("no_value")
+            if i<4:
+                for j in xrange(i,4,1):
+                    log2.append("no_valname")
+                    log2.append("no_value")
+        else:
+            log2.append('no_valname1')
+            log2.append('no_val1')
+            log2.append('no_valname2')
+            log2.append('no_val2')
+            log2.append('no_valname3')
+            log2.append('no_val3')
+            log2.append('no_valname4')
+            log2.append('no_val4')
+        print log2
+        return log2
 
 class NewEnterView2(BoxLayout):
     ti_button_text = ObjectProperty()
@@ -329,7 +411,7 @@ class NewEnterView2(BoxLayout):
         newdict = {}
 
         ID = randint(100,9999) #str(randint(100,9999))
-        newdict['id']=ID
+        newdict['button_id']=ID
         newdict['text']=self.ti_button_text.text
         if self.cb_type_log.active:
             newdict['type']= 'log'
@@ -372,12 +454,13 @@ class ButtonView(StackLayout):
     categories =[]
     app = None
     log=[]
-
+    log2=[]
 
     def __init__(self, **kwargs):
         super(ButtonView, self).__init__(**kwargs)
         self.button_dict=kwargs['button_dict']
         self.log = kwargs['log']
+        self.log2 = kwargs['log2']
         self.app = kwargs['app']
         self.show_first_level()
 
@@ -480,10 +563,58 @@ class ListEntry(BoxLayout):
             except Exception,e:
                 Logger.error("error when showing the log...  " + str(e))
 
+
+class ListEntry2(BoxLayout):
+
+    def __init__(self, **kwargs):
+        #button_id, entryname,type,note,timename1,time1,timename2,time2,timename3,time3,timename4,time4,valuename1,value1,valuename2,value2,valuename3,value3,valuename4,value4
+        self.entry=kwargs['entry']
+        self.listindex = kwargs['listindex']
+        self.orientation = 'horizontal'
+        super(ListEntry2, self).__init__(**kwargs)
+        print self.entry
+
+        label_index = Label(text=str(self.listindex),size_hint_x=0.1)
+        self.add_widget(label_index)
+
+        label_name = Label(text=self.entry[1])
+        self.add_widget(label_name)
+
+        bl_date = BoxLayout(orientation='vertical')
+        label_date1 = Label(text=self.entry[5])
+        label_date2 = Label(text=self.entry[7])
+        bl_date.add_widget(label_date1)
+        bl_date.add_widget(label_date2)
+        self.add_widget(bl_date)
+
+        bl_value = BoxLayout(orientation='vertical')
+        label_value1 = Label(text=str(self.entry[12]))
+        label_value2 = Label(text=str(self.entry[14]))
+        bl_value.add_widget(label_value1)
+        bl_value.add_widget(label_value2)
+        self.add_widget(bl_value)
+
+        bl_value = BoxLayout(orientation='vertical')
+        label_value1 = Label(text=str(self.entry[13]))
+        label_value2 = Label(text=str(self.entry[15]))
+        bl_value.add_widget(label_value1)
+        bl_value.add_widget(label_value2)
+        self.add_widget(bl_value)
+
+        label_note = Label(text=self.entry[3])
+        self.add_widget(label_note)
+
+
+    def on_touch_down(self,touch):
+        if self.collide_point(*touch.pos):
+            print "touch list-entry ",touch, self.listindex
+            return True
+
 class MainView(BoxLayout):
     bv = None
     app = None
     log =None
+    log2=None
     button_dic =None
 
     def __init__(self, **kwargs):
@@ -492,9 +623,10 @@ class MainView(BoxLayout):
 
         self.button_dict=kwargs['button_dict']
         self.log = kwargs['log']
+        self.log2 = kwargs['log2']
         self.app = kwargs['app']
 
-        self.bv = ButtonView(button_dict=self.button_dict,log=self.log,app=self.app)
+        self.bv = ButtonView(button_dict=self.button_dict,log=self.log,log2=self.log2,app=self.app)
 
         self.add_widget(self.bv)
 
@@ -519,6 +651,24 @@ class MainView(BoxLayout):
         scrollview.add_widget(boxlayout)
         self.bv.add_widget(scrollview )
 
+    def list_log2(self,instance=None):
+        print "### the whole log2: ", self.log2
+        self.bv.clear_widgets()
+        scrollview= ScrollView()
+        boxlayout = BoxLayout()
+        boxlayout.height =220
+        boxlayout.orientation = 'vertical'
+        boxlayout.size_hint_y =None
+        i=0
+        for entry in self.log2:
+            entryp = ListEntry2(entry=entry,listindex=i)
+            boxlayout.add_widget(entryp)
+            boxlayout.height += entryp.height
+            i += 1
+        scrollview.add_widget(boxlayout)
+        self.bv.add_widget(scrollview )
+
+
     def show_home_view(self):
         self.bv.show_first_level()
 
@@ -527,7 +677,7 @@ class QuantifyApp(App):
     log =[]
     filename_buttondict = 'buttons.json'
     filename_logdict = 'log.json'
-
+    filename_log2dict = 'log2.json'
     def build(self):
         try:
             self.button_dict = self.loadJson(self.filename_buttondict)
@@ -538,15 +688,24 @@ class QuantifyApp(App):
             self.log = self.loadJson(self.filename_logdict)
         except Exception,e:
             Logger.error('failed to load log-db, e: ' + str(e))
-            log = [{'datestart':'2014-05-22-13:24:43','text':'sleep_start'}]
+            self.log = [{'datestart':'2014-05-22-13:24:43','text':'sleep_start'}]
+        try:
+            self.log2 = self.loadJson(self.filename_log2dict)
+        except Exception,e:
+            Logger.error('failed to load log-db, e: ' + str(e))
+            self.log2 = [[1,2,3,4,5,6,7,8,9,0]]
 
-        self.mainBL = MainView(button_dict=self.button_dict,log=self.log,app=self)
+        self.mainBL = MainView(button_dict=self.button_dict,log=self.log,log2=self.log2,app=self)
         return self.mainBL
 
     def on_pause(self):
         self.writeJson(self.filename_buttondict, self.button_dict)
         self.writeJson(self.filename_logdict, self.log)
+        self.writeJson(self.filename_log2dict, self.log2)
         return True
+
+    def save(self):
+        self.on_pause()
 
     def on_stop(self):
         self.on_pause()

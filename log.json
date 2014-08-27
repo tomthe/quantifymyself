@@ -95,5 +95,80 @@
                 "value": 1
             }
         ]
+    },
+    {
+        "datetimes": [
+            {
+                "datetime": "2014-08-28 00:11",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-08-28 00:11",
+                "timename": "ende"
+            }
+        ],
+        "entryname": "schlaf",
+        "note": "",
+        "type": "log",
+        "values": [
+            {
+                "valname": "baba",
+                "value": 1
+            },
+            {
+                "valname": "faoug",
+                "value": 1
+            }
+        ]
+    },
+    {
+        "datetimes": [
+            {
+                "datetime": "2014-08-28 00:14",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-08-28 00:14",
+                "timename": "ende"
+            }
+        ],
+        "entryname": "schlaf",
+        "note": "",
+        "type": "log",
+        "values": [
+            {
+                "valname": "baba",
+                "value": 1
+            },
+            {
+                "valname": "faoug",
+                "value": 1
+            }
+        ]
+    },
+    {
+        "datetimes": [
+            {
+                "datetime": "2014-06-28 00:16",
+                "timename": "start"
+            },
+            {
+                "datetime": "2016-11-28 00:16",
+                "timename": "ende"
+            }
+        ],
+        "entryname": "schlaf",
+        "note": "",
+        "type": "log",
+        "values": [
+            {
+                "valname": "baba",
+                "value": 4.05859375
+            },
+            {
+                "valname": "faoug",
+                "value": 7.122395833333331
+            }
+        ]
     }
 ]
