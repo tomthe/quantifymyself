@@ -21,6 +21,7 @@ from kivy.uix.textinput import TextInput
 
 kivy.require('1.0.7')
 
+__version__ = "0.2.0"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
@@ -334,7 +335,7 @@ class NewEnterView2(BoxLayout):
     dict =[] #Button_dict of the level where the button is shown
     parent_button_view = None
     index_cal=0
-    index_val=1
+    index_val=2
     slider_list=[]
     calendar_list=[]
 
@@ -342,12 +343,12 @@ class NewEnterView2(BoxLayout):
         super(NewEnterView2, self).__init__(**kwargs)
         self.parent_button_view=kwargs['parent_button_view']
         self.dict=kwargs['dict']
+        self.add_text()
         #add calender and '+'-button
         self.add_cal()
         #add value-widget and +button
         self.add_val()
         #
-        self.add_text()
 
     def add_cal(self,instance=None):
         bl1_cal = BoxLayout(orientation='horizontal')
@@ -358,7 +359,7 @@ class NewEnterView2(BoxLayout):
         bl1_cal.add_widget(lab1_cal,0)
         bl1_cal.add_widget(textinput_cal_name,0)
         bl1_cal.add_widget(but1_cal,0)
-        self.add_widget(bl1_cal, self.index_cal+self.index_val)
+        self.add_widget(bl1_cal, self.index_val)
         self.index_cal +=1
 
         cal_dict1 = {'name':textinput_cal_name}
@@ -390,7 +391,7 @@ class NewEnterView2(BoxLayout):
         butplus_val = Button(text='+')
         butplus_val.bind(on_press=self.add_val)
         bl1_val.add_widget(butplus_val,0)
-        self.add_widget(bl1_val, self.index_val)
+        self.add_widget(bl1_val, 1)#self.index_val)
         self.index_val +=1
 
         slide_dict1 = {'name':textinput_name,'min':textinput_min,'max':textinput_max,'default':textinput_def}
