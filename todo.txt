@@ -23,3 +23,7 @@ todo
 			with the option to change an entry
 		all-in-one-graph
 		single-button-graph
+		graph-library or own?
+			own
+				paint with kivy-canvas
+				touch-events
