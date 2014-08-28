@@ -1,8 +1,25 @@
 todo
+	GUI
+		ActionBar
+			home-button --> back to the root-buttons
+			list entries --> show logs
+			...
+		Button-Options
+			create a QuantButton - longpress-->options (show graph;delete button; edit entry..)
 	file handling
-	
+		save/load  buttons and logs  as json-file [ Done ]
+		export as .csv; export logs for a single button as .csv
+		import Taplog-button-db and Taplog-log [ not important ]
 	create button
-	
+		nicer?
+		more options?
 	create entry
-	
+		Text-field!
+		better slider?!
+	logs
+		
 	show logs
+		text-view/table-view like in taplog
+			with the option to change an entry
+		all-in-one-graph
+		single-button-graph

@@ -1,11 +1,49 @@
 #:kivy 1.0
+<QuantButton>:
+	canvas:
+		Color:
+			rgba:root.color
+		Rectangle:
+			size: root.size
+			pos: root.pos
+		Color:
+			rgba:[0,0,0,1]
+		Line:
+			rectangle:[root.x+1,root.y+1,root.width-1,root.height-1]
+	Label:
+		pos: root.pos
+		size: root.size
+		text: root.text
 
 <MainView>:
-    id:bo
-    
+    #bv:bv
+    orientation:'vertical'
+    ActionBar:
+        #pos_hint: {'top':1}
+        ActionView:
+            use_separator: True
+            ActionPrevious:
+                title: 'Quantify Myself'
+                with_previous: False
+            ActionOverflow:
+            ActionButton:
+                text: 'Home'
+                on_press:root.show_home_view()
+            ActionButton:
+                text: 'List Log'
+                on_press:root.list_log()
+            ActionButton:
+                text: 'List Log2'
+                on_press:root.list_log2()
+            ActionButton:
+                text: 'Save'
+                on_press:app.save()
+
 <ButtonView>:
-	orientation:'vertical'
-    
+	orientation:'lr-tb'
+	padding:[3,3,3,3]
+	spacing:[2,2]
+
 <DateSlider>:
     orientation:'horizontal'
     syear:syear
@@ -43,7 +81,7 @@
             text:'Minute: ' + str(int(sminute.value))
         Slider:
             id:sminute
-	
+
 <CustomSlider>:
     sl:sl
     orientation:'horizontal'
@@ -83,6 +121,13 @@
     cb_type_submenu:cb_type_submenu
     orientation:'vertical'
 
+    BoxLayout:
+        orientation:'horizontal'
+        Label:
+            text:"Button-Text"
+        TextInput:
+            id:ti_button_text
+            text:''
     BoxLayout:
         orientation:'horizontal'
         Label:
@@ -138,6 +183,20 @@
             text:'100'
     BoxLayout:
         orientation:'horizontal'
+        Button:
+            text:'OK'
+            on_press:root.create_new_button()
+        Button:
+            text:'Cancel'
+            on_press:root.cancel()
+
+<NewEnterView2>:
+    ti_button_text:ti_button_text
+    cb_type_log:cb_type_log
+    cb_type_submenu:cb_type_submenu
+    orientation:'vertical'
+    BoxLayout:
+        orientation:'horizontal'
         Label:
             text:"Button-Text"
         TextInput:
@@ -145,9 +204,24 @@
             text:'new Entry'
     BoxLayout:
         orientation:'horizontal'
+        Label:
+            text:"Type: "
+        Label:
+            text:"log (new entry)"
+        CheckBox:
+            id:cb_type_log
+            group:'type'
+            active:True
+        Label:
+            text:"new Submenu"
+        CheckBox:
+            id:cb_type_submenu
+            group:'type'
+    BoxLayout:
+        orientation:'horizontal'
         Button:
             text:'OK'
-            on_press:root.create_new_button()
+            on_press:root.okay()
         Button:
             text:'Cancel'
             on_press:root.cancel()
