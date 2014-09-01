@@ -15,6 +15,21 @@
 		size: root.size
 		text: root.text
 
+<Knob>:
+	canvas.before:
+		Color:
+			rgb:[0.8,1,1]
+		Line:
+			cap:'none'
+			width:5
+			circle:[root.center[0],root.center[1],min(root.width/2,root.height/2)]
+		Color:
+			rgb:[0.9,0.3,0.1]
+		Line:
+			cap:'none'
+			width:9
+			circle:[root.center[0],root.center[1],min(root.width/2,root.height/2),0,float(root.value - root.min)/root.max*360]
+
 <MainView>:
     #bv:bv
     orientation:'vertical'
