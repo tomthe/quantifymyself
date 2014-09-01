@@ -28,6 +28,7 @@ class QuantButton(Widget):
     color = ListProperty([0.4,0.5,0.5,1])
     text = StringProperty(",")
     timeStartPress = None
+    status = None
 
     def __init__(self, **kwargs):
         #print "init quantbutton",kwargs
@@ -40,8 +41,12 @@ class QuantButton(Widget):
             if self.dict['type']=="log":
                 self.color =[0.5,0.4,0.4,1]
             if 'status' in self.dict:
+                #if self.dict['status']=='started':
+                self.status = self.dict['status']
                 if self.dict['status']=='started':
-                    pass
+                    self.color = [0.4,0.5,0.5,1]
+                elif self.dict['status']=='inactive':
+                    self.color = [0.5,0.5,0.4,1]
         super(QuantButton, self).__init__(**kwargs)
 
     def on_touch_down(self,touch):
@@ -79,8 +84,8 @@ class Knob(Label):
     value=NumericProperty()
     real_value = 0
     min,max = NumericProperty(0),NumericProperty(100)
-    #allow_out_of_range = True
-    step=0.25
+    allow_out_of_range = False
+    step=0.1
     last_y = 0
 
     def __init__(self, **kwargs):
@@ -113,7 +118,12 @@ class Knob(Label):
                 timediffseconds =0.01
             elif timediffseconds >1.9:
                 timediffseconds=1.9
-            self.real_value = (self.real_value + 0.01 * (touch.pos[1]-self.last_y) /timediffseconds)
+
+            self.real_value = (self.real_value + 0.00002 * (self.max - self.min) * (touch.pos[1]-self.last_y) /timediffseconds)
+            if self.real_value < self.min:
+                self.real_value = self.min
+            elif self.real_value > self.max:
+                self.real_value = self.max
             self.value = round(self.real_value/self.step,0)*self.step
             self.last_y = touch.pos[1]
             self.timeLastMove=datetime.now()
@@ -145,6 +155,30 @@ class CustomSlider(BoxLayout):
         self.min = float(value[0])
         self.max = float(value[1])
         self.sl.step=0.1
+        #print "customSlider - on_range:  ",instance,value,self.range, self.min, self.sl.range, self.sl.min
+
+    def on_step(self,instance,value):
+        self.sl.step = value
+
+class CustomKnob(BoxLayout):
+    ltext = StringProperty()
+    range = ListProperty()
+    min,max = NumericProperty(0),NumericProperty(99)
+    value = NumericProperty(1)
+    sl = ObjectProperty()
+
+    step = NumericProperty(0.1)
+
+    def on_value(self,instance,value):
+        self.sl.value = value
+
+    def change_value(self,val):
+        self.value = val
+
+    def on_range(self,instance,value):
+        self.min = float(value[0])
+        self.max = float(value[1])
+        self.sl.step=self.step#0.1
         #print "customSlider - on_range:  ",instance,value,self.range, self.min, self.sl.range, self.sl.min
 
     def on_step(self,instance,value):
@@ -242,7 +276,7 @@ class EnterView2(BoxLayout):
                 self.calendars.append(cal)
 
             for slid in self.dict['sliders']:
-                slider_wid = CustomSlider()
+                slider_wid = CustomKnob() #CustomSlider()
                 slider_wid.default_value = slid['slider_def']
                 slider_wid.ltext=slid['slider_name']
                 slider_wid.range=[slid['slider_min'],slid['slider_max']]

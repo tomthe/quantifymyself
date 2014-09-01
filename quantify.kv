@@ -18,13 +18,13 @@
 <Knob>:
 	canvas.before:
 		Color:
-			rgb:[0.8,1,1]
+			rgb:[0,0.2,0.4]
 		Line:
 			cap:'none'
 			width:5
 			circle:[root.center[0],root.center[1],min(root.width/2,root.height/2)]
 		Color:
-			rgb:[0.9,0.3,0.1]
+			rgb:[0.2,0.4,0]
 		Line:
 			cap:'none'
 			width:9
@@ -59,7 +59,7 @@
 	padding:[3,3,3,3]
 	spacing:[2,2]
 
-<DateSlider>:
+<DateSlider2>:
     orientation:'horizontal'
     syear:syear
     smonth:smonth
@@ -97,6 +97,45 @@
         Slider:
             id:sminute
 
+
+<DateSlider>:
+    orientation:'horizontal'
+    syear:syear
+    smonth:smonth
+    sday:sday
+    shour:shour
+    sminute:sminute
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Year: '
+        Knob:
+            id:syear
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Month: '
+        Knob:
+            id:smonth
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Day: ' 
+        Knob:
+            id:sday
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Hour: '
+        Knob:
+            id:shour
+    BoxLayout:
+        orientation:'vertical'
+        Label:
+            text:'Minute: '
+        Knob:
+            id:sminute
+
 <CustomSlider>:
     sl:sl
     orientation:'horizontal'
@@ -107,6 +146,23 @@
         size_hint_x:0.15
         text:str(sl.value)
     Slider:
+        id:sl
+        min:root.min
+        max:root.max
+        value:root.value
+        on_value:root.change_value(self.value)
+        #on_touch_down:root.test()
+	
+<CustomKnob>:
+    sl:sl
+    orientation:'horizontal'
+    Label:
+        size_hint_x:0.15
+        text:root.ltext
+    Label:
+        size_hint_x:0.15
+        text:str(sl.value)
+    Knob:
         id:sl
         min:root.min
         max:root.max
