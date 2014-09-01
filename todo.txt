@@ -21,9 +21,16 @@ todo
 	show logs
 		text-view/table-view like in taplog
 			with the option to change an entry
+				double-tap: open entry-view with these values
+					therefore we need an init_with_values(log-entry, index)-function
+					on_okay: save the changed log entry at the position it was log[index]=newLogEntry
+			as nice as:
+				show big
 		all-in-one-graph
 		single-button-graph
 		graph-library or own?
+			how should it look and feel like?
+				
 			own
 				paint with kivy-canvas
 				touch-events

@@ -170,5 +170,30 @@
                 "value": 7.122395833333331
             }
         ]
+    },
+    {
+        "datetimes": [
+            {
+                "datetime": "2014-08-28 14:52",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-08-28 14:52",
+                "timename": "ende"
+            }
+        ],
+        "entryname": "schlaf",
+        "note": "",
+        "type": "log",
+        "values": [
+            {
+                "valname": "baba",
+                "value": 8.679687499999998
+            },
+            {
+                "valname": "faoug",
+                "value": 3.1106770833333326
+            }
+        ]
     }
 ]

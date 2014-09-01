@@ -9,7 +9,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import ListProperty, StringProperty, ObjectProperty, NumericProperty
+from kivy.properties import ListProperty, StringProperty, ObjectProperty, NumericProperty,AliasProperty
 from kivy.logger import Logger
 from kivy.app import App
 from time import strftime
@@ -21,7 +21,7 @@ from kivy.uix.textinput import TextInput
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
@@ -36,13 +36,16 @@ class QuantButton(Widget):
         self.dict = kwargs['dict']
         #print 'children' in self.dict, len(self.dict), self.dict
         if 'type' in self.dict:
-            print "type ist drin",
+            #print "type ist drin",
             if self.dict['type']=="log":
                 self.color =[0.5,0.4,0.4,1]
+            if 'status' in self.dict:
+                if self.dict['status']=='started':
+                    pass
         super(QuantButton, self).__init__(**kwargs)
 
     def on_touch_down(self,touch):
-        print "quantmove ",touch
+        #print "quantmove ",touch
         if self.collide_point(*touch.pos):
             self.color = [0.3,0.5,0.5,1]
             touch.grab(self)
@@ -72,6 +75,56 @@ class QuantButton(Widget):
     def on_press(self,instance):
         print "on_press",instance
 
+class Knob(Label):
+    value=NumericProperty()
+    real_value = 0
+    min,max = NumericProperty(0),NumericProperty(100)
+    #allow_out_of_range = True
+    step=0.25
+    last_y = 0
+
+    def __init__(self, **kwargs):
+        #print "init quantbutton",kwargs
+        #print 'children' in self.dict, len(self.dict), self.dict
+        if 'value' in kwargs:
+            print "value ist drin",
+            self.value = kwargs['value']
+            self.real_value = self.value
+        super(Knob, self).__init__(**kwargs)
+        self.real_value = self.value
+
+    def on_value(self,instance,value):
+        self.text = str(value)
+        self.real_value = value
+        #round(self.real_value/self.step,0)*self.step
+
+    def on_touch_down(self,touch):
+        if self.collide_point(*touch.pos):
+            touch.grab(self)
+            self.timeLastMove=datetime.now()
+            self.last_y =touch.pos[1]
+            # accept the touch.
+            return True
+
+    def on_touch_move(self, touch):
+        if touch.grab_current is self:
+            timediffseconds =(datetime.now() - self.timeLastMove).total_seconds()
+            if timediffseconds <0.01:
+                timediffseconds =0.01
+            elif timediffseconds >1.9:
+                timediffseconds=1.9
+            self.real_value = (self.real_value + 0.01 * (touch.pos[1]-self.last_y) /timediffseconds)
+            self.value = round(self.real_value/self.step,0)*self.step
+            self.last_y = touch.pos[1]
+            self.timeLastMove=datetime.now()
+            return True
+
+    def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            # don't forget to ungrab ourself, or you might have side effects
+            touch.ungrab(self)
+            # and accept the last up
+            return True
 
 class CustomSlider(BoxLayout):
     ltext = StringProperty()
@@ -80,6 +133,7 @@ class CustomSlider(BoxLayout):
     value = NumericProperty(1)
     sl = ObjectProperty()
 
+    step = NumericProperty(0.1)
 
     def on_value(self,instance,value):
         self.sl.value = value
@@ -90,7 +144,11 @@ class CustomSlider(BoxLayout):
     def on_range(self,instance,value):
         self.min = float(value[0])
         self.max = float(value[1])
+        self.sl.step=0.1
         #print "customSlider - on_range:  ",instance,value,self.range, self.min, self.sl.range, self.sl.min
+
+    def on_step(self,instance,value):
+        self.sl.step = value
 
 class DateSlider(BoxLayout):
     syear = ObjectProperty()
@@ -157,53 +215,58 @@ class EnterView2(BoxLayout):
     note_input = None
 
     def __init__(self, **kwargs):
-        self.dict=kwargs['dict']
-        self.orientation='vertical'
-        super(EnterView2, self).__init__(**kwargs)
+        try:
+            self.dict=kwargs['dict']
+            self.orientation='vertical'
+            super(EnterView2, self).__init__(**kwargs)
 
-        self.clear_widgets()
-        print "build EnterView --- dict:    ", self.dict
+            self.clear_widgets()
+            print "build EnterView --- dict:    ", self.dict
 
-        label_text= Label()
-        if 'text' in self.dict:
-            label_text.text = self.dict['text']
-        else:
-            label_text.text = '_no text available_'
-        self.add_widget(label_text)
-
-        for date in self.dict['calendars']:
-            print "date:    ,. ", date,
-            if 'name' in date:
-                print ", yes"
-                cal = DateSlider(text=date['name'])
+            label_text= Label()
+            if 'text' in self.dict:
+                label_text.text = self.dict['text']
             else:
-                print ", no"
-                cal = DateSlider()
-            self.add_widget(cal)
-            self.calendars.append(cal)
+                label_text.text = '_no text available_'
+            self.add_widget(label_text)
 
-        for slid in self.dict['sliders']:
-            slider_wid = CustomSlider()
-            slider_wid.default_value = slid['slider_def']
-            slider_wid.ltext=slid['slider_name']
-            slider_wid.range=[slid['slider_min'],slid['slider_max']]
-            self.add_widget(slider_wid)
-            self.value_sliders.append(slider_wid)
+            for date in self.dict['calendars']:
+                print "date:    ,. ", date,
+                if 'name' in date:
+                    print ", yes"
+                    cal = DateSlider(text=date['name'])
+                else:
+                    print ", no"
+                    cal = DateSlider()
+                self.add_widget(cal)
+                self.calendars.append(cal)
 
-        #if 'textfield' in self.dict:
-        #    if self.dict['textfield']:
-        self.note_input=TextInput()
-        self.add_widget(self.note_input)
-        #----------
+            for slid in self.dict['sliders']:
+                slider_wid = CustomSlider()
+                slider_wid.default_value = slid['slider_def']
+                slider_wid.ltext=slid['slider_name']
+                slider_wid.range=[slid['slider_min'],slid['slider_max']]
+                self.add_widget(slider_wid)
+                self.value_sliders.append(slider_wid)
 
-        bt_ok = Button()
-        bt_ok.text = "OK"
-        bt_ok.bind(on_press=self.log_entry)
-        self.add_widget(bt_ok)
-        bt_cancel = Button()
-        bt_cancel.text = "cancel"
-        bt_cancel.bind(on_press=self.cancelf)
-        self.add_widget(bt_cancel)
+            #if 'textfield' in self.dict:
+            #    if self.dict['textfield']:
+            self.note_input=TextInput()
+            self.add_widget(self.note_input)
+            #----------
+
+            bt_ok = Button()
+            bt_ok.text = "OK"
+            bt_ok.bind(on_press=self.log_entry)
+            self.add_widget(bt_ok)
+            bt_cancel = Button()
+            bt_cancel.text = "cancel"
+            bt_cancel.bind(on_press=self.cancelf)
+            self.add_widget(bt_cancel)
+        except Exception, e:
+            Logger.error("couldn't create enterView - delete button? " + str(e)+ str(self.dict))
+            label = Label("couldn't create enterView - delete button? " + str(e) + str(self.dict))
+            self.add_widget(label)
 
     def cancelf(self,instance=None):
         self.parent_button_view.clear_widgets()
