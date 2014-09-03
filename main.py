@@ -18,6 +18,7 @@ from datetime import datetime
 
 from json import load, dump
 from kivy.uix.textinput import TextInput
+from pygame.gfxdraw import box
 
 kivy.require('1.0.7')
 
@@ -276,10 +277,12 @@ class EnterView2(BoxLayout):
                 self.calendars.append(cal)
 
             for slid in self.dict['sliders']:
+                print '----------slid',slid
                 slider_wid = CustomKnob() #CustomSlider()
-                slider_wid.default_value = slid['slider_def']
+                slider_wid.value = float(slid['slider_def'])
                 slider_wid.ltext=slid['slider_name']
-                slider_wid.range=[slid['slider_min'],slid['slider_max']]
+                slider_wid.min = float(slid['slider_min'])
+                slider_wid.max = float(slid['slider_max'])
                 self.add_widget(slider_wid)
                 self.value_sliders.append(slider_wid)
 
@@ -299,7 +302,7 @@ class EnterView2(BoxLayout):
             self.add_widget(bt_cancel)
         except Exception, e:
             Logger.error("couldn't create enterView - delete button? " + str(e)+ str(self.dict))
-            label = Label("couldn't create enterView - delete button? " + str(e) + str(self.dict))
+            label = Label(text="couldn't create enterView - delete button? " + str(e) + str(self.dict))
             self.add_widget(label)
 
     def cancelf(self,instance=None):
@@ -440,22 +443,76 @@ class NewEnterView2(BoxLayout):
         super(NewEnterView2, self).__init__(**kwargs)
         self.parent_button_view=kwargs['parent_button_view']
         self.dict=kwargs['dict']
-        self.add_text()
-        #add calender and '+'-button
-        self.add_cal()
-        #add value-widget and +button
-        self.add_val()
-        #
+        self.slider_list=[]
+        self.calendar_list=[]
+        #self.parent_button_view.clear_widgets()
+        #self.clear_widgets()
+        self.on_cb4_newSubmenu(value=True)
 
-    def add_cal(self,instance=None):
+    def add_name_field(self):
+        bl=BoxLayout()
+        lab = Label(text='Button-Text')
+        bl.add_widget(lab)
+        self.ti_button_text = TextInput(text='')
+        bl.add_widget(self.ti_button_text)
+        self.add_widget(bl)
+
+    def add_ok_cancel(self):
+        bl= BoxLayout(orientation='horizontal')
+        bt_ok = Button(text='OK2')
+        bl.add_widget(bt_ok)
+        bt_ok.bind(on_press=self.okay)
+        bt_cancel = Button(text='Cancel2')
+        bl.add_widget(bt_cancel)
+        bt_cancel.bind(on_press=self.cancel)
+        self.add_widget(bl)
+
+    def add_type_choice(self,choice='newSubmenu'):
+        bl = BoxLayout(orientation='horizontal')
+
+        label1 = Label(text='single event')
+        bl.add_widget(label1)
+        self.cb1_singleEvent = CheckBox(group='type')
+        if choice=='singleEvent':
+            self.cb1_singleEvent.active = True
+        bl.add_widget(self.cb1_singleEvent)
+        self.cb1_singleEvent.bind(active=self.on_cb1_singleEvent)
+
+        label2 = Label(text='start stop')
+        bl.add_widget(label2)
+        self.cb2_startstop = CheckBox(group='type')
+        if choice=='startstop':
+            self.cb2_startstop.active = True
+        bl.add_widget(self.cb2_startstop)
+        self.cb2_startstop.bind(active=self.on_cb2_startstop)
+
+        label3 = Label(text='4 times')
+        bl.add_widget(label3)
+        self.cb3_4times = CheckBox(group='type')
+        if choice=='4times':
+            self.cb3_4times.active = True
+        bl.add_widget(self.cb3_4times)
+        self.cb3_4times.bind(active=self.on_cb3_4times)
+
+        label4 = Label(text='new submenu')
+        bl.add_widget(label4)
+        self.cb4_newSubmenu = CheckBox(group='type')
+        if choice=='newSubmenu':
+            self.cb4_newSubmenu.active = True
+        bl.add_widget(self.cb4_newSubmenu)
+        self.cb4_newSubmenu.bind(active=self.on_cb4_newSubmenu)
+
+        self.add_widget(bl)
+
+    def add_cal(self,instance=None,name='time1'):
         bl1_cal = BoxLayout(orientation='horizontal')
         lab1_cal = Label(text='DateTime-Slider')
-        textinput_cal_name = TextInput(text='time1')
-        but1_cal = Button(text='+',size_hint_x=0.2)
-        but1_cal.bind(on_press=self.add_cal)
+        textinput_cal_name = TextInput(text=name)
+        #but1_cal = Button(text='+',size_hint_x=0.2)
+        #but1_cal.bind(on_press=self.add_cal)
         bl1_cal.add_widget(lab1_cal,0)
         bl1_cal.add_widget(textinput_cal_name,0)
-        bl1_cal.add_widget(but1_cal,0)
+        #bl1_cal.add_widget(but1_cal,0)
         self.add_widget(bl1_cal, self.index_val)
         self.index_cal +=1
 
@@ -493,6 +550,7 @@ class NewEnterView2(BoxLayout):
 
         slide_dict1 = {'name':textinput_name,'min':textinput_min,'max':textinput_max,'default':textinput_def}
         self.slider_list.append(slide_dict1)
+        print "sliderlist..... ",self.slider_list
 
     def add_text(self):
         bl1 = BoxLayout(orientation='horizontal')
@@ -505,19 +563,85 @@ class NewEnterView2(BoxLayout):
 
         self.add_widget(bl1,1)
 
+    def on_cb1_singleEvent(self,instance=None,value=None):
+        if value:
+            self.clear_widgets()
+            self.slider_list=[]
+            self.calendar_list=[]
+            self.add_name_field()
+            self.add_type_choice(choice='singleEvent')
+
+            print "on_cb1_singleEvent...",instance
+            self.add_text()
+            #add calender and '+'-button
+            self.add_cal()
+            #add value-widget and +button
+            self.add_val()
+
+            self.add_ok_cancel()
+
+    def on_cb2_startstop(self,instance=None,value=None):
+        if value:
+            print "on_cb2_startstop...",instance
+            self.clear_widgets()
+            self.slider_list=[]
+            self.calendar_list=[]
+            self.add_type_choice(choice='startstop')
+            self.add_name_field()
+
+            self.add_text()
+            #add calender and '+'-button
+            self.add_cal(name='start')
+            self.add_cal(name='stop')
+            #add value-widget and +button
+            self.add_val()
+            self.add_ok_cancel()
+
+    def on_cb3_4times(self,instance=None,value=None):
+        if value:
+            self.clear_widgets()
+            self.slider_list=[]
+            self.calendar_list=[]
+            self.add_type_choice(choice='4times')
+            self.add_name_field()
+
+            print "on_cb3_4times...",instance
+            self.add_cal(name='start1')
+            self.add_cal(name='start2')
+            self.add_cal(name='stop1')
+            self.add_cal(name='stop2')
+            self.add_val()
+            self.add_ok_cancel()
+
+    def on_cb4_newSubmenu(self,instance=None,value=None):
+        if value:
+            print "on_cb4_newSubmenu...",instance
+            self.clear_widgets()
+            self.slider_list=[]
+            self.calendar_list=[]
+            self.add_name_field()
+            self.add_type_choice(choice='newSubmenu')
+            #
+            self.add_ok_cancel()
+
     def okay(self,instance=None):
         newdict = {}
 
         ID = randint(100,9999) #str(randint(100,9999))
         newdict['button_id']=ID
         newdict['text']=self.ti_button_text.text
-        if self.cb_type_log.active:
+        if self.cb1_singleEvent.active:
             newdict['type']= 'log'
-        elif self.cb_type_submenu.active:
+        elif self.cb2_startstop.active:
+            newdict['type']= 'log'
+        elif self.cb3_4times.active:
+            newdict['type']= 'log'
+        elif self.cb4_newSubmenu.active:
             newdict['type']= 'submenu'
 
         if  newdict['type']=='log':
             sliders=[]
+            print "sliderlist:  ", self.slider_list
             for slider in self.slider_list:
                 slid_={}
                 slid_['slider_name'] = slider['name'].text
@@ -526,6 +650,7 @@ class NewEnterView2(BoxLayout):
                 slid_['slider_def'] =str(float(slider['default'].text))
                 sliders.append(slid_)
             newdict['sliders'] = sliders
+            print "sliders:  ", sliders
             calendars=[]
             for dateentry in self.calendar_list:
                 cal_={}
@@ -541,9 +666,10 @@ class NewEnterView2(BoxLayout):
             print "no availible type!"
             return 0
         self.dict.append(newdict)
+        print "newdict:   ", newdict
         self.cancel()
 
-    def cancel(self):
+    def cancel(self,instance=None):
         self.parent_button_view.clear_widgets()
         self.parent_button_view.show_first_level()
 
@@ -563,7 +689,7 @@ class ButtonView(StackLayout):
         self.show_first_level()
 
     def show_first_level(self):
-        #print "show_first_level 1 ", self.button_dict,self.log
+        print "show_first_level 1 ", self.button_dict,self.log
         self.categories = []
         self.clear_widgets()
         for button in self.button_dict:
@@ -580,6 +706,7 @@ class ButtonView(StackLayout):
         self.add_add_button(dict=self.button_dict)
 
     def show_button_dict(self,bdict,text):
+        print " ButtonView...show_button_dict",text
         self.clear_widgets()
         self.categories.append(text)
         categoryname_Label = Label()
@@ -635,6 +762,7 @@ class ButtonView(StackLayout):
 
     def on_size(self,instance,value):
         self.show_first_level()
+        pass
 
 class ListEntry(BoxLayout):
 
@@ -675,12 +803,12 @@ class ListEntry2(BoxLayout):
         label_index = Label(text=str(self.listindex),size_hint_x=0.1)
         self.add_widget(label_index)
 
-        label_name = Label(text=self.entry[1])
+        label_name = Label(text=str(self.entry[1]))
         self.add_widget(label_name)
 
         bl_date = BoxLayout(orientation='vertical')
-        label_date1 = Label(text=self.entry[5])
-        label_date2 = Label(text=self.entry[7])
+        label_date1 = Label(text=str(self.entry[5]))
+        label_date2 = Label(text=str(self.entry[7]))
         bl_date.add_widget(label_date1)
         bl_date.add_widget(label_date2)
         self.add_widget(bl_date)
