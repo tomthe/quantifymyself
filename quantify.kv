@@ -262,37 +262,4 @@
             on_press:root.cancel()
 
 <NewEnterView2>:
-    ti_button_text:ti_button_text
-    cb_type_log:cb_type_log
-    cb_type_submenu:cb_type_submenu
     orientation:'vertical'
-    BoxLayout:
-        orientation:'horizontal'
-        Label:
-            text:"Button-Text"
-        TextInput:
-            id:ti_button_text
-            text:'new Entry'
-    BoxLayout:
-        orientation:'horizontal'
-        Label:
-            text:"Type: "
-        Label:
-            text:"log (new entry)"
-        CheckBox:
-            id:cb_type_log
-            group:'type'
-            active:True
-        Label:
-            text:"new Submenu"
-        CheckBox:
-            id:cb_type_submenu
-            group:'type'
-    BoxLayout:
-        orientation:'horizontal'
-        Button:
-            text:'OK'
-            on_press:root.okay()
-        Button:
-            text:'Cancel'
-            on_press:root.cancel()
