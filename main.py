@@ -26,7 +26,7 @@ from pygame.gfxdraw import box
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.7"
+__version__ = "0.2.8"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
@@ -997,24 +997,37 @@ class MainView(BoxLayout):
         self.bv.clear_widgets()
         scrollview= ScrollView()
         relatlayout = RelativeLayout()
-        i=0
-        lastdate = datetime(2010,1,1,0,0)
-        print "lastdate:  ",lastdate
-        for entry in self.log2:
+        relatlayout.height = self.height
+        relatlayout.width = self.width
 
-            date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
-            print date1, date1-lastdate, (date1-lastdate).days
-            if (abs((date1-lastdate).days) > 1 ):
-                lastdate = date1
-                date_label = Label(text=date1.strftime("%A,    %Y-%m-%d"),color=(0.7,1,0.8,1),font_size=sp(16))
-                relatlayout.add_widget(date_label)
-                date_label.height = 33
-                relatlayout.height += date_label.height
-            entryp = ListEntry2(entry=entry,listindex=i)
-            relatlayout.add_widget(entryp)
-            relatlayout.height += entryp.height
-            print "entryp-height: ", entryp.height, relatlayout.height
-            i += 1
+        anz_days=10
+        anz_hours=24
+        #position anhand der zeit bestimmen:
+        #y = (day - startday)* dayheight
+        #dayheight =
+        #x = secondofday-startsecond )*secondwidth + x_offset
+
+        for entry in self.log2:
+            try:
+                date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+
+                if entry['type']=='startstop':
+                    pass
+                    #paint a rectangle from start to stop
+                elif entry['type']=='singleevent':
+                    pass
+                    #paint circle and label
+
+                if (abs((date1-lastdate).days) > 1 ):
+                    lastdate = date1
+                    date_label = Label(text=date1.strftime("%A,    %Y-%m-%d"),color=(0.7,1,0.8,1),font_size=sp(16))
+                    relatlayout.add_widget(date_label)
+                    date_label.height = 33
+                    relatlayout.height += date_label.height
+                entryp = ListEntry2(entry=entry,listindex=i)
+                relatlayout.add_widget(entryp)
+            except:
+                pass
         scrollview.add_widget(relatlayout)
         self.bv.add_widget(scrollview )
         scrollview.scroll_y = 0
