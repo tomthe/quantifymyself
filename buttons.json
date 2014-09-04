@@ -1,222 +1,26 @@
 [
     {
-        "button_id": 3700,
-        "children": [
+        "button_id": 1,
+        "calendars": [
             {
-                "button_id": 4845,
-                "calendars": [
-                    {
-                        "name": "start1"
-                    },
-                    {
-                        "name": "start2"
-                    },
-                    {
-                        "name": "stop1"
-                    },
-                    {
-                        "name": "stop2"
-                    }
-                ],
-                "note": true,
-                "sliders": [
-                    {
-                        "slider_def": "1.4",
-                        "slider_max": "7.0",
-                        "slider_min": "0.0",
-                        "slider_name": "vi1"
-                    },
-                    {
-                        "slider_def": "2.0",
-                        "slider_max": "8.0",
-                        "slider_min": "0.0",
-                        "slider_name": "ve2"
-                    },
-                    {
-                        "slider_def": "3.0",
-                        "slider_max": "9.0",
-                        "slider_min": "0.0",
-                        "slider_name": "ve3"
-                    }
-                ],
-                "text": "4zeiten",
-                "type": "log"
+                "name": "start"
             },
             {
-                "button_id": 2963,
-                "calendars": [
-                    {
-                        "name": "start1"
-                    },
-                    {
-                        "name": "start2"
-                    },
-                    {
-                        "name": "stop1"
-                    },
-                    {
-                        "name": "stop2"
-                    },
-                    {
-                        "name": "start"
-                    },
-                    {
-                        "name": "stop"
-                    }
-                ],
-                "note": true,
-                "sliders": [
-                    {
-                        "slider_def": "1.4",
-                        "slider_max": "7.0",
-                        "slider_min": "0.0",
-                        "slider_name": "vi1"
-                    },
-                    {
-                        "slider_def": "2.0",
-                        "slider_max": "8.0",
-                        "slider_min": "0.0",
-                        "slider_name": "ve2"
-                    },
-                    {
-                        "slider_def": "3.0",
-                        "slider_max": "9.0",
-                        "slider_min": "0.0",
-                        "slider_name": "ve3"
-                    },
-                    {
-                        "slider_def": "1.0",
-                        "slider_max": "3.0",
-                        "slider_min": "0.0",
-                        "slider_name": "va1"
-                    },
-                    {
-                        "slider_def": "2.0",
-                        "slider_max": "4.0",
-                        "slider_min": "1.0",
-                        "slider_name": "v2"
-                    },
-                    {
-                        "slider_def": "3.0",
-                        "slider_max": "5.0",
-                        "slider_min": "1.0",
-                        "slider_name": "val3"
-                    },
-                    {
-                        "slider_def": "4.0",
-                        "slider_max": "6.0",
-                        "slider_min": "2.0",
-                        "slider_name": "val4"
-                    },
-                    {
-                        "slider_def": "5.0",
-                        "slider_max": "7.0",
-                        "slider_min": "3.0",
-                        "slider_name": "va5"
-                    }
-                ],
-                "text": "startstoptest-5slider",
-                "type": "log"
-            },
-            {
-                "button_id": 5098,
-                "children": [
-                    {
-                        "button_id": 766,
-                        "children": [
-                            {
-                                "button_id": 8424,
-                                "calendars": [
-                                    {
-                                        "name": "start"
-                                    },
-                                    {
-                                        "name": "stop"
-                                    }
-                                ],
-                                "note": true,
-                                "sliders": [
-                                    {
-                                        "slider_def": "1.0",
-                                        "slider_max": "10.0",
-                                        "slider_min": "0.0",
-                                        "slider_name": "value1"
-                                    },
-                                    {
-                                        "slider_def": "1.0",
-                                        "slider_max": "22.0",
-                                        "slider_min": "0.0",
-                                        "slider_name": "bananen"
-                                    }
-                                ],
-                                "text": "",
-                                "type": "log"
-                            }
-                        ],
-                        "text": "gogo",
-                        "type": "submenu"
-                    }
-                ],
-                "text": "",
-                "type": "submenu"
+                "name": "stop"
             }
         ],
-        "text": "test",
-        "type": "submenu"
-    },
-    {
-        "button_id": 3784,
-        "children": [
+        "lasttime": "2014-09-04 16:09",
+        "note": true,
+        "sliders": [
             {
-                "button_id": 6819,
-                "calendars": [
-                    {
-                        "name": "start"
-                    },
-                    {
-                        "name": "stop"
-                    }
-                ],
-                "lasttime": "2014-09-04 15:37",
-                "note": true,
-                "sliders": [
-                    {
-                        "slider_def": "4.0",
-                        "slider_max": "10.0",
-                        "slider_min": "0.0",
-                        "slider_name": "baba"
-                    }
-                ],
-                "status": "stopped",
-                "text": "ulframmla",
-                "type": "startstop"
-            },
-            {
-                "button_id": 3002,
-                "calendars": [
-                    {
-                        "name": "start"
-                    },
-                    {
-                        "name": "stop"
-                    }
-                ],
-                "lasttime": "2014-09-04 16:09",
-                "note": true,
-                "sliders": [
-                    {
-                        "slider_def": "5.0",
-                        "slider_max": "10.0",
-                        "slider_min": "0.0",
-                        "slider_name": "valba"
-                    }
-                ],
-                "status": "stopped",
-                "text": "brumm",
-                "type": "startstop"
+                "slider_def": "5.0",
+                "slider_max": "10.0",
+                "slider_min": "0.0",
+                "slider_name": "productivity"
             }
         ],
-        "text": "knopftext",
-        "type": "submenu"
+        "status": "stopped",
+        "text": "Work start stop",
+        "type": "startstop"
     }
 ]

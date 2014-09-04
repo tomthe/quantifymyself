@@ -26,7 +26,7 @@ from pygame.gfxdraw import box
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.6"
+__version__ = "0.2.7"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
@@ -825,7 +825,7 @@ class ListEntry(BoxLayout):
     def __init__(self, **kwargs):
         self.entry=kwargs['entry']
         super(ListEntry, self).__init__(**kwargs)
-        print self.entry
+        #print self.entry
 
         for item,value in self.entry.viewitems():
             try:
@@ -948,20 +948,20 @@ class MainView(BoxLayout):
         print "### the whole log: ", self.log
         self.bv.clear_widgets()
         scrollview= ScrollView()
-        boxlayout = BoxLayout()
-        boxlayout.height =220
-        boxlayout.orientation = 'vertical'
-        boxlayout.size_hint_y =None
+        gridlayout = GridLayout(cols=1,spacing=5,size_hint_y =None)
+
+        gridlayout.size_hint_y =None
         for entry in self.log:
             print "###entry  ", entry
             if type(entry) is list:
                 pass
             else:
                 entryp = ListEntry(entry=entry)
-                boxlayout.add_widget(entryp)
-                boxlayout.height += entryp.height
-                print "hhh: ", entryp.height, boxlayout.height
-        scrollview.add_widget(boxlayout)
+                entryp.height =100
+                gridlayout.add_widget(entryp)
+                gridlayout.height += entryp.height
+                print "hhh: ", entryp.height, gridlayout.height
+        scrollview.add_widget(gridlayout)
         self.bv.add_widget(scrollview )
         scrollview.scroll_y = 0
 
@@ -979,7 +979,7 @@ class MainView(BoxLayout):
             print date1, date1-lastdate, (date1-lastdate).days
             if (abs((date1-lastdate).days) > 1 ):
                 lastdate = date1
-                date_label = Label(text=date1.strftime("%A,    %Y-%m-%d"),color=(1,0.7,1,1),font_size=sp(16))
+                date_label = Label(text=date1.strftime("%A,    %Y-%m-%d"),color=(0.7,1,0.8,1),font_size=sp(16))
                 gridlayout.add_widget(date_label)
                 date_label.height = 33
                 gridlayout.height += date_label.height
@@ -989,6 +989,33 @@ class MainView(BoxLayout):
             print "entryp-height: ", entryp.height, gridlayout.height
             i += 1
         scrollview.add_widget(gridlayout)
+        self.bv.add_widget(scrollview )
+        scrollview.scroll_y = 0
+
+    def paint_log(self,instance=None):
+        print "### the whole log2: ", self.log2
+        self.bv.clear_widgets()
+        scrollview= ScrollView()
+        relatlayout = RelativeLayout()
+        i=0
+        lastdate = datetime(2010,1,1,0,0)
+        print "lastdate:  ",lastdate
+        for entry in self.log2:
+
+            date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+            print date1, date1-lastdate, (date1-lastdate).days
+            if (abs((date1-lastdate).days) > 1 ):
+                lastdate = date1
+                date_label = Label(text=date1.strftime("%A,    %Y-%m-%d"),color=(0.7,1,0.8,1),font_size=sp(16))
+                relatlayout.add_widget(date_label)
+                date_label.height = 33
+                relatlayout.height += date_label.height
+            entryp = ListEntry2(entry=entry,listindex=i)
+            relatlayout.add_widget(entryp)
+            relatlayout.height += entryp.height
+            print "entryp-height: ", entryp.height, relatlayout.height
+            i += 1
+        scrollview.add_widget(relatlayout)
         self.bv.add_widget(scrollview )
         scrollview.scroll_y = 0
 
@@ -1007,18 +1034,17 @@ class QuantifyApp(App):
             self.button_dict = self.loadJson(self.filename_buttondict)
         except Exception,e:
             Logger.error('failed to load button-db, e: ' + str(e))
-            self.button_dict =[{'type':'submenu','text':'sleep','children':[{'type':'log','text':'sleep start'},{'type':'log','val1':'71','text':'sleep stop'}]},{'type':'log','text':'health','children':[{'type':'log','text':'sleep start'},{'type':'log','text':'sleep stop'}]} ]
+            self.button_dict =[{"button_id": 1,"calendars": [ { "name": "start" },  { "name": "stop" }], "lasttime": "2014-09-04 16:09",                "note": True,                "sliders": [                    {                        "slider_def": "5.0",                        "slider_max": "10.0",                        "slider_min": "0.0",                        "slider_name": "productivity"                    }                ],                "status": "stopped",                "text": "Work start stop",                "type": "startstop"}]
         try:
             self.log = self.loadJson(self.filename_logdict)
         except Exception,e:
             Logger.error('failed to load log-db, e: ' + str(e))
-            self.log = [{'datestart':'2014-05-22-13:24:43','text':'sleep_start'}]
+            self.log = [{"datetimes": [{ "datetime": "2014-08-17 19:33", "timename": "time1" },  {"datetime": "2014-08-22 19:33",                "timename": "time1"            }        ],        "entryname": "bullo",        "note": "sdfw",        "type": "log",        "values": [            {                "valname": "produktivit\u00e4t",                "value": 5.666666666666665            },            {                "valname": "value",                "value": 5.683593749999999            },            {                "valname": "spass",                "value": 3.0598958333333326            }        ]    }]
         try:
             self.log2 = self.loadJson(self.filename_log2dict)
         except Exception,e:
             Logger.error('failed to load log-db, e: ' + str(e))
-            self.log2 = [[1,2,3,4,5,6,7,8,9,0]]
-
+            self.log2 = [[1,        "4zeiten",        "log",        "",        "test|",        "tim1",        "2014-09-06 14:16",        "start1",        "2014-09-04 14:16",        "start2",        "2014-09-04 14:16",        "stop1",        "2014-09-04 14:16",        "slo1",        1.5,        "slo2",        2.0,        "vi1",        1.4,        "ve2",        2.0    ]]
         self.mainBL = MainView(button_dict=self.button_dict,log=self.log,log2=self.log2,app=self)
         return self.mainBL
 
