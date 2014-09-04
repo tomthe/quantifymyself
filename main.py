@@ -25,7 +25,7 @@ from pygame.gfxdraw import box
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
