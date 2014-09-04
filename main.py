@@ -1,4 +1,5 @@
 import kivy
+from kivy.graphics import Rectangle,Line
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.widget import Widget
@@ -9,10 +10,12 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import ListProperty, StringProperty, ObjectProperty, NumericProperty,AliasProperty
 from kivy.logger import Logger
+from kivy.metrics import dp,sp
 from kivy.app import App
-from time import strftime
+from time import strftime, strptime
 from random import randint
 from datetime import datetime
 
@@ -41,6 +44,12 @@ class QuantButton(Widget):
             #print "type ist drin",
             if self.dict['type']=="log":
                 self.color =[0.5,0.4,0.4,1]
+            elif self.dict['type']=="singleevent":
+                self.color =[0.5,0.5,0.4,1]
+            elif self.dict['type']=="startstop":
+                self.color =[0.5,0.4,0.3,1]
+            elif self.dict['type']=="4times":
+                self.color =[0.5,0.3,0.3,1]
             if 'status' in self.dict:
                 #if self.dict['status']=='started':
                 self.status = self.dict['status']
@@ -252,6 +261,8 @@ class EnterView2(BoxLayout):
     def __init__(self, **kwargs):
         try:
             self.dict=kwargs['dict']
+            if 'categories' in kwargs:
+                self.categories = kwargs['categories']
             self.orientation='vertical'
             super(EnterView2, self).__init__(**kwargs)
 
@@ -328,6 +339,7 @@ class EnterView2(BoxLayout):
             val_new['value']=val.value
             values.append(val_new)
         new_log_entry['values'] = values
+        new_log_entry['categories']=self.categories
 
         if 'text' in self.dict:
             new_log_entry['entryname'] = str(self.dict['text'])
@@ -369,6 +381,12 @@ class EnterView2(BoxLayout):
             log2.append(log1['note'])
         else:
             log2.append('no_note')
+        categories = ""
+        if 'categories' in log1:
+            for cat in log1['categories']:
+                categories += cat + "|"
+            categories = categories[:-1]
+        log2.append(categories)
 
         if 'datetimes' in log1:
             log1time = log1['datetimes']
@@ -473,7 +491,7 @@ class NewEnterView2(BoxLayout):
         label1 = Label(text='single event')
         bl.add_widget(label1)
         self.cb1_singleEvent = CheckBox(group='type')
-        if choice=='singleEvent':
+        if choice=='singleevent':
             self.cb1_singleEvent.active = True
         bl.add_widget(self.cb1_singleEvent)
         self.cb1_singleEvent.bind(active=self.on_cb1_singleEvent)
@@ -569,7 +587,7 @@ class NewEnterView2(BoxLayout):
             self.slider_list=[]
             self.calendar_list=[]
             self.add_name_field()
-            self.add_type_choice(choice='singleEvent')
+            self.add_type_choice(choice='singleevent')
 
             print "on_cb1_singleEvent...",instance
             self.add_text()
@@ -631,15 +649,15 @@ class NewEnterView2(BoxLayout):
         newdict['button_id']=ID
         newdict['text']=self.ti_button_text.text
         if self.cb1_singleEvent.active:
-            newdict['type']= 'log'
+            newdict['type']= 'singleevent'
         elif self.cb2_startstop.active:
-            newdict['type']= 'log'
+            newdict['type']= 'startstop'
         elif self.cb3_4times.active:
-            newdict['type']= 'log'
+            newdict['type']= '4times'
         elif self.cb4_newSubmenu.active:
             newdict['type']= 'submenu'
 
-        if  newdict['type']=='log':
+        if  newdict['type'] in ['log','singleevent','startstop','4times']:
             sliders=[]
             print "sliderlist:  ", self.slider_list
             for slider in self.slider_list:
@@ -753,9 +771,7 @@ class ButtonView(StackLayout):
             #-->entry
             print "buttonview-buttonpress-instance.dict : ", instance.dict
             self.clear_widgets()
-            ev = EnterView2(dict=instance.dict)
-            #ev.dict=instance.dict
-            ev.categories =  self.categories
+            ev = EnterView2(dict=instance.dict,categories=self.categories)
             ev.parent_button_view=self
             print "ev..............", ev
             self.add_widget(ev)
@@ -790,51 +806,64 @@ class ListEntry(BoxLayout):
                 Logger.error("error when showing the log...  " + str(e))
 
 
-class ListEntry2(BoxLayout):
+class ListEntry2(RelativeLayout):
 
     def __init__(self, **kwargs):
         #button_id, entryname,type,note,timename1,time1,timename2,time2,timename3,time3,timename4,time4,valuename1,value1,valuename2,value2,valuename3,value3,valuename4,value4
         self.entry=kwargs['entry']
         self.listindex = kwargs['listindex']
-        self.orientation = 'horizontal'
+        #self.orientation = 'horizontal'
         super(ListEntry2, self).__init__(**kwargs)
         print self.entry
+        try:
+            label_index = Label(text=str(self.listindex),size_hint=(0.04,0.5), pos_hint={'x':.0, 'y':.5})
+            self.add_widget(label_index)
 
-        label_index = Label(text=str(self.listindex),size_hint_x=0.1)
-        self.add_widget(label_index)
+            bl_date = BoxLayout(orientation='vertical',pos_hint={'x':.01, 'y':.0}, size_hint=(None,1),width=sp(100))
+            date1 = datetime.strptime(str(self.entry[6]),"%Y-%m-%d %H:%M")
+            date2 = datetime.strptime(str(self.entry[8]),"%Y-%m-%d %H:%M")
+            label_date1 = Label(text=date1.strftime("%H:%M"))
+            bl_date.add_widget(label_date1)
+            if (date2-date1).seconds > 1:
+                label_date2 = Label(text=str(self.entry[8])[10:])
+                bl_date.add_widget(label_date2)
 
-        label_name = Label(text=str(self.entry[1]))
-        self.add_widget(label_name)
+            self.add_widget(bl_date)
+            label_name = Label(text=str(self.entry[1]),pos_hint={'x':.15, 'top':1}, size_hint=(None,0.4), size=(100,20))
+            self.add_widget(label_name)
+            label_categories = Label(text=str(self.entry[4]),pos_hint={'x':.15, 'top':0.75}, size_hint=(None,0.4), size=(100,20))
+            self.add_widget(label_categories)
 
-        bl_date = BoxLayout(orientation='vertical')
-        label_date1 = Label(text=str(self.entry[5]))
-        label_date2 = Label(text=str(self.entry[7]))
-        bl_date.add_widget(label_date1)
-        bl_date.add_widget(label_date2)
-        self.add_widget(bl_date)
+            bl_value = BoxLayout(orientation='vertical',pos_hint={'x':.55}, size_hint=(0.15,1))
+            label_value1 = Label(text=str(self.entry[13]))
+            label_value2 = Label(text=str(self.entry[15]))
+            bl_value.add_widget(label_value1)
+            bl_value.add_widget(label_value2)
+            self.add_widget(bl_value)
 
-        bl_value = BoxLayout(orientation='vertical')
-        label_value1 = Label(text=str(self.entry[12]))
-        label_value2 = Label(text=str(self.entry[14]))
-        bl_value.add_widget(label_value1)
-        bl_value.add_widget(label_value2)
-        self.add_widget(bl_value)
+            bl_value = BoxLayout(orientation='vertical',pos_hint={'x':.75}, size_hint=(0.15,1))
+            label_value1 = Label(text=str(round(float(str(self.entry[14])),2)))
+            label_value2 = Label(text=str(round(float(str(self.entry[16])),2)))
+            bl_value.add_widget(label_value1)
+            bl_value.add_widget(label_value2)
+            self.add_widget(bl_value)
 
-        bl_value = BoxLayout(orientation='vertical')
-        label_value1 = Label(text=str(self.entry[13]))
-        label_value2 = Label(text=str(self.entry[15]))
-        bl_value.add_widget(label_value1)
-        bl_value.add_widget(label_value2)
-        self.add_widget(bl_value)
+            print "self.x,y,w,h,pos,self...",(self.x,self.y,self.width,self.height), self.pos,self
 
-        label_note = Label(text=self.entry[3])
-        self.add_widget(label_note)
-
+            label_note = Label(text=self.entry[3],pos_hint={'x':.5, 'y':.8}, size_hint=(0.6,0.3))
+            self.add_widget(label_note)
+        except Exception, e:
+            Logger.error("couldn't create log-entry... "+ str(e))
 
     def on_touch_down(self,touch):
         if self.collide_point(*touch.pos):
             print "touch list-entry ",touch, self.listindex
             return True
+
+    def on_pos(self,instance=None,value=None):
+        print "on_pos listentry", self.entry, instance,value, self.pos,self.size
+        #with self.canvas:
+        #    Line(rectangle=(self.x,self.y,self.parent.parent.width,3))
 
 class MainView(BoxLayout):
     bv = None
@@ -886,10 +915,21 @@ class MainView(BoxLayout):
         boxlayout.orientation = 'vertical'
         boxlayout.size_hint_y =None
         i=0
+        lastdate = datetime(2010,1,1,0,0)
+        print "lastdate:  ",lastdate
         for entry in self.log2:
+
+            date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+            print date1, date1-lastdate, (date1-lastdate).days
+            if (abs((date1-lastdate).days) > 1 ):
+                lastdate = date1
+                date_label = Label(text=entry[6][0:10])
+                boxlayout.add_widget(date_label)
+                boxlayout.height += date_label.height
             entryp = ListEntry2(entry=entry,listindex=i)
             boxlayout.add_widget(entryp)
-            boxlayout.height += entryp.height
+            #boxlayout.height += entryp.height
+            print "entryp-height: ", entryp.height, boxlayout.height
             i += 1
         scrollview.add_widget(boxlayout)
         self.bv.add_widget(scrollview )
