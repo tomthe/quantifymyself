@@ -39,6 +39,15 @@
 			width:1
 			rectangle:[root.pos[0]+3,root.pos[1]+3,root.width-6,root.height-4]
 
+<ListEntry>:
+	canvas.after:
+		Color:
+			rgb:[0.7,0.6,0.4]
+		Line:
+			cap:'none'
+			width:1
+			rectangle:[root.pos[0]+3,root.pos[1]+3,root.width-6,root.height-4]
+
 <MainView>:
     #bv:bv
     orientation:'vertical'
@@ -62,6 +71,9 @@
             ActionButton:
                 text: 'List Log'
                 on_press:root.list_log()
+            ActionButton:
+                text: 'Paint Log'
+                on_press:root.paint_log()
 
 <ButtonView>:
 	orientation:'lr-tb'
