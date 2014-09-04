@@ -740,5 +740,701 @@
                 "value": 5.0
             }
         ]
+    },
+    {
+        "button_id": 3002,
+        "categories": [
+            "knopftext"
+        ],
+        "datetimes": [
+            {
+                "datetime": "2014-09-10 14:47",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-10 22:47",
+                "timename": "stop"
+            }
+        ],
+        "entryname": "brumm",
+        "note": "bababab",
+        "type": "startstop",
+        "values": [
+            {
+                "valname": "valba",
+                "value": 6.7
+            }
+        ]
+    },
+    {
+        "button_id": 3002,
+        "categories": [
+            "knopftext"
+        ],
+        "datetimes": [
+            {
+                "datetime": "2014-09-10 14:47",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-10 22:47",
+                "timename": "stop"
+            },
+            {
+                "datetime": "2014-09-02 04:48",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-02 14:54",
+                "timename": "stop"
+            }
+        ],
+        "entryname": "brumm",
+        "note": "notetext blabla bla",
+        "type": "startstop",
+        "values": [
+            {
+                "valname": "valba",
+                "value": 6.7
+            },
+            {
+                "valname": "valba",
+                "value": 5.0
+            }
+        ]
+    },
+    {
+        "button_id": 6819,
+        "categories": [
+            "knopftext"
+        ],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 14:57",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-04 14:57",
+                "timename": "stop"
+            }
+        ],
+        "entryname": "ulframmla",
+        "note": "",
+        "type": "startstop",
+        "values": [
+            {
+                "valname": "baba",
+                "value": 5.800000000000001
+            }
+        ]
+    },
+    {
+        "button_id": 6819,
+        "categories": [
+            "knopftext"
+        ],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 15:37",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-04 15:43",
+                "timename": "stop"
+            }
+        ],
+        "entryname": "ulframmla",
+        "note": "",
+        "type": "startstop",
+        "values": [
+            {
+                "valname": "baba",
+                "value": 5.300000000000001
+            }
+        ]
+    },
+    {
+        "button_id": 3002,
+        "categories": [
+            "knopftext"
+        ],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 15:43",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-04 16:00",
+                "timename": "stop"
+            }
+        ],
+        "entryname": "brumm",
+        "note": "",
+        "type": "startstop",
+        "values": [
+            {
+                "valname": "valba",
+                "value": 5.0
+            }
+        ]
+    },
+    {
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-04 18:09",
+                "timename": "ende"
+            }
+        ],
+        "entryname": "schlaf",
+        "note": "bzzzzzzzzzzz",
+        "type": "log",
+        "values": [
+            {
+                "valname": "baba",
+                "value": 6.0
+            },
+            {
+                "valname": "faoug",
+                "value": 3.6
+            }
+        ]
+    },
+    {
+        "button_id": 6020,
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-04 18:09",
+                "timename": "ende"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim1"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim1"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim2"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim3"
+            }
+        ],
+        "entryname": "new Entry",
+        "note": "",
+        "type": "log",
+        "values": [
+            {
+                "valname": "baba",
+                "value": 6.0
+            },
+            {
+                "valname": "faoug",
+                "value": 3.6
+            },
+            {
+                "valname": "slo1",
+                "value": 1.8
+            },
+            {
+                "valname": "slo2",
+                "value": 1.7000000000000002
+            },
+            {
+                "valname": "s1",
+                "value": 5.800000000000001
+            },
+            {
+                "valname": "s2",
+                "value": 5.2
+            },
+            {
+                "valname": "sss4",
+                "value": 1
+            }
+        ]
+    },
+    {
+        "button_id": 3002,
+        "categories": [
+            "knopftext"
+        ],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-04 18:09",
+                "timename": "ende"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim1"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim1"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim2"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim3"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-04 16:29",
+                "timename": "stop"
+            }
+        ],
+        "entryname": "brumm",
+        "note": "",
+        "type": "startstop",
+        "values": [
+            {
+                "valname": "baba",
+                "value": 6.0
+            },
+            {
+                "valname": "faoug",
+                "value": 3.6
+            },
+            {
+                "valname": "slo1",
+                "value": 1.8
+            },
+            {
+                "valname": "slo2",
+                "value": 1.7000000000000002
+            },
+            {
+                "valname": "s1",
+                "value": 5.800000000000001
+            },
+            {
+                "valname": "s2",
+                "value": 5.2
+            },
+            {
+                "valname": "sss4",
+                "value": 1
+            },
+            {
+                "valname": "valba",
+                "value": 5.0
+            }
+        ]
+    },
+    {
+        "button_id": 3002,
+        "categories": [
+            "knopftext"
+        ],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-04 18:09",
+                "timename": "ende"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim1"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim1"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim2"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "tim3"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-04 16:29",
+                "timename": "stop"
+            },
+            {
+                "datetime": "2014-09-04 16:09",
+                "timename": "start"
+            },
+            {
+                "datetime": "2014-09-04 20:09",
+                "timename": "stop"
+            }
+        ],
+        "entryname": "brumm",
+        "note": "laangweilig!",
+        "type": "startstop",
+        "values": [
+            {
+                "valname": "baba",
+                "value": 6.0
+            },
+            {
+                "valname": "faoug",
+                "value": 3.6
+            },
+            {
+                "valname": "slo1",
+                "value": 1.8
+            },
+            {
+                "valname": "slo2",
+                "value": 1.7000000000000002
+            },
+            {
+                "valname": "s1",
+                "value": 5.800000000000001
+            },
+            {
+                "valname": "s2",
+                "value": 5.2
+            },
+            {
+                "valname": "sss4",
+                "value": 1
+            },
+            {
+                "valname": "valba",
+                "value": 5.0
+            },
+            {
+                "valname": "valba",
+                "value": 7.5
+            }
+        ]
+    },
+    {
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 17:15",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 17:45",
+                "timename": "time1"
+            }
+        ],
+        "entryname": "Arbeitszeit",
+        "note": "17:15 bis 17:45; produktivitaet 7.2",
+        "type": "log",
+        "values": [
+            {
+                "valname": "produktivitaet",
+                "value": 7.2
+            }
+        ]
+    },
+    {
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 17:15",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 17:45",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:18",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:42",
+                "timename": "time1"
+            }
+        ],
+        "entryname": "Arbeitszeit",
+        "note": "nix",
+        "type": "log",
+        "values": [
+            {
+                "valname": "produktivitaet",
+                "value": 7.2
+            },
+            {
+                "valname": "produktivitaet",
+                "value": 4.0
+            }
+        ]
+    },
+    {
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 17:15",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 17:45",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:18",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:42",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 19:24",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 20:24",
+                "timename": "time1"
+            }
+        ],
+        "entryname": "Arbeitszeit",
+        "note": "hm...",
+        "type": "log",
+        "values": [
+            {
+                "valname": "produktivitaet",
+                "value": 7.2
+            },
+            {
+                "valname": "produktivitaet",
+                "value": 4.0
+            },
+            {
+                "valname": "produktivitaet",
+                "value": 4.1000000000000005
+            }
+        ]
+    },
+    {
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 16:22",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:23",
+                "timename": "time1"
+            }
+        ],
+        "entryname": "Arbeitszeit",
+        "note": "",
+        "type": "log",
+        "values": [
+            {
+                "valname": "produktivitaet",
+                "value": 5.0
+            }
+        ]
+    },
+    {
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 16:22",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:23",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:24",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:25",
+                "timename": "time1"
+            }
+        ],
+        "entryname": "Arbeitszeit",
+        "note": "",
+        "type": "log",
+        "values": [
+            {
+                "valname": "produktivitaet",
+                "value": 5.0
+            },
+            {
+                "valname": "produktivitaet",
+                "value": 5.0
+            }
+        ]
+    },
+    {
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 16:22",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:23",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:24",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:25",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:26",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:27",
+                "timename": "time1"
+            }
+        ],
+        "entryname": "Arbeitszeit",
+        "note": "",
+        "type": "log",
+        "values": [
+            {
+                "valname": "produktivitaet",
+                "value": 5.0
+            },
+            {
+                "valname": "produktivitaet",
+                "value": 5.0
+            },
+            {
+                "valname": "produktivitaet",
+                "value": 4.5
+            }
+        ]
+    },
+    {
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 16:31",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:34",
+                "timename": "time1"
+            }
+        ],
+        "entryname": "Arbeitszeit",
+        "note": "",
+        "type": "log",
+        "values": [
+            {
+                "valname": "produktivitaet",
+                "value": 5.0
+            }
+        ]
+    },
+    {
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 16:31",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:34",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:39",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:46",
+                "timename": "time1"
+            }
+        ],
+        "entryname": "Arbeitszeit",
+        "note": "zweite mal 7.3",
+        "type": "log",
+        "values": [
+            {
+                "valname": "produktivitaet",
+                "value": 5.0
+            },
+            {
+                "valname": "produktivitaet",
+                "value": 7.300000000000001
+            }
+        ]
+    },
+    {
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 16:38",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:40",
+                "timename": "time1"
+            }
+        ],
+        "entryname": "Arbeitszeit",
+        "note": "",
+        "type": "log",
+        "values": [
+            {
+                "valname": "produktivitaet",
+                "value": 5.0
+            }
+        ]
+    },
+    {
+        "categories": [],
+        "datetimes": [
+            {
+                "datetime": "2014-09-04 16:43",
+                "timename": "time1"
+            },
+            {
+                "datetime": "2014-09-04 16:47",
+                "timename": "time1"
+            }
+        ],
+        "entryname": "Arbeitszeit",
+        "note": "",
+        "type": "log",
+        "values": [
+            {
+                "valname": "produktivitaet",
+                "value": 8.4
+            }
+        ]
     }
 ]

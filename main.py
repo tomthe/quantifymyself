@@ -10,6 +10,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import ListProperty, StringProperty, ObjectProperty, NumericProperty,AliasProperty
 from kivy.logger import Logger
@@ -25,12 +26,12 @@ from pygame.gfxdraw import box
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.4"
+__version__ = "0.2.6"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
     color = ListProperty([0.4,0.5,0.5,1])
-    text = StringProperty(",")
+    #text = StringProperty(",")
     timeStartPress = None
     status = None
 
@@ -39,6 +40,8 @@ class QuantButton(Widget):
         self.register_event_type('on_long_press')
         self.register_event_type('on_press')
         self.dict = kwargs['dict']
+        if 'text' in kwargs:
+            self.text = kwargs['text']
         #print 'children' in self.dict, len(self.dict), self.dict
         if 'type' in self.dict:
             #print "type ist drin",
@@ -54,7 +57,9 @@ class QuantButton(Widget):
                 #if self.dict['status']=='started':
                 self.status = self.dict['status']
                 if self.dict['status']=='started':
-                    self.color = [0.4,0.5,0.5,1]
+                    self.color = [0.6,0.5,0.5,1]
+                    if 'lasttime' in self.dict:
+                        self.text += "\n"+ str(self.dict['lasttime'])
                 elif self.dict['status']=='inactive':
                     self.color = [0.5,0.5,0.4,1]
         super(QuantButton, self).__init__(**kwargs)
@@ -84,11 +89,13 @@ class QuantButton(Widget):
             return True
 
     def on_long_press(self,instance):
-        print "on_long_press", instance
+        pass
+        #print "on_long_press", instance
 
 
     def on_press(self,instance):
-        print "on_press",instance
+        pass
+        #print "on_press",instance
 
 class Knob(Label):
     value=NumericProperty()
@@ -204,7 +211,10 @@ class DateSlider(BoxLayout):
 
     def __init__(self, **kwargs):
         super(DateSlider, self).__init__(**kwargs)
-        now = datetime.now()
+        try:
+            now = datetime.strptime(kwargs['timestring'],"%Y-%m-%d %H:%M")
+        except Exception, e:
+            now = datetime.now()
         #print "build dateslider...now:", now
 
         if 'text' in kwargs:
@@ -259,10 +269,15 @@ class EnterView2(BoxLayout):
     note_input = None
 
     def __init__(self, **kwargs):
+        self.calendars=[]
+        self.value_sliders=[]
+        self.categories=[]
         try:
             self.dict=kwargs['dict']
             if 'categories' in kwargs:
                 self.categories = kwargs['categories']
+            if 'parent_button_view' in kwargs:
+                self.parent_button_view=kwargs['parent_button_view']
             self.orientation='vertical'
             super(EnterView2, self).__init__(**kwargs)
 
@@ -276,11 +291,33 @@ class EnterView2(BoxLayout):
                 label_text.text = '_no text available_'
             self.add_widget(label_text)
 
+            i = 0
             for date in self.dict['calendars']:
-                print "date:    ,. ", date,
+                lasttime=None
+                if i ==0:
+                    i +=1
+                    if self.dict['type'] in ['startstop', '4times']:
+                        if 'status' in self.dict:
+                            if self.dict['status']=='started':
+                                if 'lasttime' in self.dict:
+                                    lasttime = self.dict['lasttime']
+                                else:
+                                    self.dict['lasttime'] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                                self.dict['status']='stopped'
+                            else:
+                                self.dict['status']='started'
+                                self.dict['lasttime'] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                                self.cancelf()
+                                return None
+                        else:
+                            self.dict['status']='started'
+                            self.dict['lasttime'] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                            self.cancelf()
+                            return None
+
                 if 'name' in date:
                     print ", yes"
-                    cal = DateSlider(text=date['name'])
+                    cal = DateSlider(text=date['name'],timestring=lasttime)
                 else:
                     print ", no"
                     cal = DateSlider()
@@ -317,8 +354,12 @@ class EnterView2(BoxLayout):
             self.add_widget(label)
 
     def cancelf(self,instance=None):
-        self.parent_button_view.clear_widgets()
-        self.parent_button_view.show_first_level()
+        try:
+            self.parent_button_view.clear_widgets()
+            self.parent_button_view.show_first_level()
+        except:
+            self.parent.clear_widgets()
+            self.parent.show_first_level()
 
     def log_entry(self,instance=None):
         new_log_entry = {}
@@ -644,7 +685,7 @@ class NewEnterView2(BoxLayout):
 
     def okay(self,instance=None):
         newdict = {}
-
+        print ".................................................................................."
         ID = randint(100,9999) #str(randint(100,9999))
         newdict['button_id']=ID
         newdict['text']=self.ti_button_text.text
@@ -757,7 +798,7 @@ class ButtonView(StackLayout):
     def add_button(self,instance,value=None):
         self.clear_widgets()
         av = NewEnterView2(parent_button_view=self,dict=instance.dict)
-        av.parent_button_view = self
+        #av.parent_button_view = self
         av.dict = instance.dict
         self.add_widget(av)
 
@@ -769,11 +810,10 @@ class ButtonView(StackLayout):
             self.show_button_dict(instance.dict,instance.text)
         elif type(instance.dict)==dict:
             #-->entry
-            print "buttonview-buttonpress-instance.dict : ", instance.dict
+            #print "buttonview-buttonpress-instance.dict : ", instance.dict
             self.clear_widgets()
-            ev = EnterView2(dict=instance.dict,categories=self.categories)
-            ev.parent_button_view=self
-            print "ev..............", ev
+            ev = EnterView2(dict=instance.dict,categories=self.categories,parent_button_view=self)
+            #ev.parent_button_view=self
             self.add_widget(ev)
 
     def on_size(self,instance,value):
@@ -814,7 +854,7 @@ class ListEntry2(RelativeLayout):
         self.listindex = kwargs['listindex']
         #self.orientation = 'horizontal'
         super(ListEntry2, self).__init__(**kwargs)
-        print self.entry
+        #print self.entry
         try:
             label_index = Label(text=str(self.listindex),size_hint=(0.04,0.5), pos_hint={'x':.0, 'y':.5})
             self.add_widget(label_index)
@@ -842,28 +882,46 @@ class ListEntry2(RelativeLayout):
             self.add_widget(bl_value)
 
             bl_value = BoxLayout(orientation='vertical',pos_hint={'x':.75}, size_hint=(0.15,1))
-            label_value1 = Label(text=str(round(float(str(self.entry[14])),2)))
-            label_value2 = Label(text=str(round(float(str(self.entry[16])),2)))
-            bl_value.add_widget(label_value1)
-            bl_value.add_widget(label_value2)
+            try:
+                label_value1 = Label(text=str(round(float(str(self.entry[14])),2)))
+                bl_value.add_widget(label_value1)
+            except:
+                pass
+            try:
+                label_value2 = Label(text=str(round(float(str(self.entry[16])),2)))
+                bl_value.add_widget(label_value2)
+            except:
+                pass
             self.add_widget(bl_value)
 
-            print "self.x,y,w,h,pos,self...",(self.x,self.y,self.width,self.height), self.pos,self
+            if len(self.entry[3])>1:
+                self.height +=300
+                label_note = Label(text=self.entry[3],pos_hint={'x':0.1, 'y':0.0}, size_hint=(0.6,0.3),text_size=(300,None),color=(0.4,1,1,1))
+                self.add_widget(label_note)
+                #print "label-size: ", label_note.size, label_note.texture_size,"self.x,y,w,h,pos,self...",(self.x,self.y,self.width,self.height), self.pos,self
 
-            label_note = Label(text=self.entry[3],pos_hint={'x':.5, 'y':.8}, size_hint=(0.6,0.3))
-            self.add_widget(label_note)
+
         except Exception, e:
             Logger.error("couldn't create log-entry... "+ str(e))
 
     def on_touch_down(self,touch):
         if self.collide_point(*touch.pos):
-            print "touch list-entry ",touch, self.listindex
+            #print "touch list-entry ",touch, self.listindex
+            #print "on_touch...pos listentry", self.pos,self.size, self.entry,self.size,touch
             return True
 
     def on_pos(self,instance=None,value=None):
-        print "on_pos listentry", self.entry, instance,value, self.pos,self.size
+        pass
+        #print "on_pos listentry", self.entry, instance,value, self.pos,self.size
+        #self.height = 66
         #with self.canvas:
         #    Line(rectangle=(self.x,self.y,self.parent.parent.width,3))
+
+    def on_size(self,instance=None,value=None):
+            pass
+            #print "on_size...pos listentry", self.pos,self.size, self.entry,self.size
+            # self.height = 66
+
 
 class MainView(BoxLayout):
     bv = None
@@ -905,15 +963,13 @@ class MainView(BoxLayout):
                 print "hhh: ", entryp.height, boxlayout.height
         scrollview.add_widget(boxlayout)
         self.bv.add_widget(scrollview )
+        scrollview.scroll_y = 0
 
     def list_log2(self,instance=None):
         print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
         scrollview= ScrollView()
-        boxlayout = BoxLayout()
-        boxlayout.height =220
-        boxlayout.orientation = 'vertical'
-        boxlayout.size_hint_y =None
+        gridlayout = GridLayout(cols=1,spacing=5,size_hint_y =None)
         i=0
         lastdate = datetime(2010,1,1,0,0)
         print "lastdate:  ",lastdate
@@ -923,15 +979,16 @@ class MainView(BoxLayout):
             print date1, date1-lastdate, (date1-lastdate).days
             if (abs((date1-lastdate).days) > 1 ):
                 lastdate = date1
-                date_label = Label(text=entry[6][0:10])
-                boxlayout.add_widget(date_label)
-                boxlayout.height += date_label.height
+                date_label = Label(text=entry[6][0:10],color=(1,0.7,1,1),font_size=sp(16))
+                gridlayout.add_widget(date_label)
+                date_label.height = 33
+                gridlayout.height += date_label.height
             entryp = ListEntry2(entry=entry,listindex=i)
-            boxlayout.add_widget(entryp)
-            #boxlayout.height += entryp.height
-            print "entryp-height: ", entryp.height, boxlayout.height
+            gridlayout.add_widget(entryp)
+            gridlayout.height += entryp.height
+            print "entryp-height: ", entryp.height, gridlayout.height
             i += 1
-        scrollview.add_widget(boxlayout)
+        scrollview.add_widget(gridlayout)
         self.bv.add_widget(scrollview )
 
 
