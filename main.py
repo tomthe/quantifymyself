@@ -979,7 +979,7 @@ class MainView(BoxLayout):
             print date1, date1-lastdate, (date1-lastdate).days
             if (abs((date1-lastdate).days) > 1 ):
                 lastdate = date1
-                date_label = Label(text=entry[6][0:10],color=(1,0.7,1,1),font_size=sp(16))
+                date_label = Label(text=date1.strftime("%A,    %Y-%m-%d"),color=(1,0.7,1,1),font_size=sp(16))
                 gridlayout.add_widget(date_label)
                 date_label.height = 33
                 gridlayout.height += date_label.height
@@ -990,6 +990,7 @@ class MainView(BoxLayout):
             i += 1
         scrollview.add_widget(gridlayout)
         self.bv.add_widget(scrollview )
+        scrollview.scroll_y = 0
 
 
     def show_home_view(self):
