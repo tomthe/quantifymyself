@@ -9,7 +9,7 @@
                 "name": "stop"
             }
         ],
-        "lasttime": "2014-09-04 16:09",
+        "lasttime": "2014-09-05 14:09",
         "note": true,
         "sliders": [
             {
@@ -22,5 +22,24 @@
         "status": "stopped",
         "text": "Work start stop",
         "type": "startstop"
+    },
+    {
+        "button_id": 7150,
+        "calendars": [
+            {
+                "name": "time1"
+            }
+        ],
+        "note": true,
+        "sliders": [
+            {
+                "slider_def": "5.0",
+                "slider_max": "10.0",
+                "slider_min": "0.0",
+                "slider_name": "value"
+            }
+        ],
+        "text": "test",
+        "type": "singleevent"
     }
 ]
