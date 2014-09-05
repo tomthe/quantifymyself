@@ -1,5 +1,5 @@
 import kivy
-from kivy.graphics import Rectangle,Line
+from kivy.graphics import Rectangle,Line,Color
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.widget import Widget
@@ -16,13 +16,12 @@ from kivy.properties import ListProperty, StringProperty, ObjectProperty, Numeri
 from kivy.logger import Logger
 from kivy.metrics import dp,sp
 from kivy.app import App
-from time import strftime, strptime
+#from time import strftime, strptime
 from random import randint
-from datetime import datetime
+from datetime import datetime,timedelta
 
 from json import load, dump
 from kivy.uix.textinput import TextInput
-from pygame.gfxdraw import box
 
 kivy.require('1.0.7')
 
@@ -856,19 +855,24 @@ class ListEntry2(RelativeLayout):
         super(ListEntry2, self).__init__(**kwargs)
         #print self.entry
         try:
+            self.height=sp(75)
             label_index = Label(text=str(self.listindex),size_hint=(0.04,0.5), pos_hint={'x':.0, 'y':.5})
             self.add_widget(label_index)
 
             bl_date = BoxLayout(orientation='vertical',pos_hint={'x':.01, 'y':.0}, size_hint=(None,1),width=sp(100))
-            date1 = datetime.strptime(str(self.entry[6]),"%Y-%m-%d %H:%M")
-            date2 = datetime.strptime(str(self.entry[8]),"%Y-%m-%d %H:%M")
-            label_date1 = Label(text=date1.strftime("%H:%M"))
-            bl_date.add_widget(label_date1)
-            if (date2-date1).seconds > 1:
-                label_date2 = Label(text=str(self.entry[8])[10:])
-                bl_date.add_widget(label_date2)
-
+            try:
+                date1 = datetime.strptime(str(self.entry[6]),"%Y-%m-%d %H:%M")
+                label_date1 = Label(text=date1.strftime("%H:%M"))
+                bl_date.add_widget(label_date1)
+                date2 = datetime.strptime(str(self.entry[8]),"%Y-%m-%d %H:%M")
+                if (date2-date1).seconds > 1:
+                    label_date2 = Label(text=str(self.entry[8])[10:])
+                    bl_date.add_widget(label_date2)
+            except Exception, e:
+                Logger.error("Show Log- date-error" + str(e))
             self.add_widget(bl_date)
+
+
             label_name = Label(text=str(self.entry[1]),pos_hint={'x':.15, 'top':1}, size_hint=(None,0.4), size=(100,20))
             self.add_widget(label_name)
             label_categories = Label(text=str(self.entry[4]),pos_hint={'x':.15, 'top':0.75}, size_hint=(None,0.4), size=(100,20))
@@ -895,8 +899,10 @@ class ListEntry2(RelativeLayout):
             self.add_widget(bl_value)
 
             if len(self.entry[3])>1:
-                self.height +=300
-                label_note = Label(text=self.entry[3],pos_hint={'x':0.1, 'y':0.0}, size_hint=(0.6,0.3),text_size=(300,None),color=(0.4,1,1,1))
+                self.height +=sp(14)
+                for row in self.entry[3].split("\n"):
+                    self.height +=sp(14)
+                label_note = Label(text=self.entry[3],pos_hint={'x':0.1, 'y':0.4}, size_hint=(0.6,0.3),text_size=(300,None),color=(0.4,1,1,1))
                 self.add_widget(label_note)
                 #print "label-size: ", label_note.size, label_note.texture_size,"self.x,y,w,h,pos,self...",(self.x,self.y,self.width,self.height), self.pos,self
 
@@ -921,6 +927,100 @@ class ListEntry2(RelativeLayout):
             pass
             #print "on_size...pos listentry", self.pos,self.size, self.entry,self.size
             # self.height = 66
+class AllInOneGraph(RelativeLayout):
+    pass
+
+
+    def __init__(self, **kwargs):
+        #self.entry=kwargs['entry']
+        super(AllInOneGraph, self).__init__(**kwargs)
+        self.log2=kwargs['log2']
+
+
+    def paintAll(self):
+        self.canvas.clear()
+        offset_x=sp(50)
+        offset_y=sp(50)
+
+        h=self.height-2*offset_y
+        w=self.width-2*offset_x
+
+        n_days=10
+        n_seconds=24*60*60
+        day_height=h/n_days
+        offset_yd=offset_y + day_height/2
+        second_width=float(w)/n_seconds
+        print n_seconds, "seconds; sec_w: ", second_width, day_height
+
+        with self.canvas:
+            Color(0.8,0.3,0.1)
+            #Line(rectangle=(offset_x,offset_y,w,day_height),width=1)
+            #Line(rectangle=(offset_x,offset_y,w,h),width=1)
+            #Line(rectangle=(offset_x,offset_y+2*day_height,12*60*60*second_width,h),width=1)
+
+        endday = datetime.now()
+        #position anhand der zeit bestimmen:
+        #y = (day - startday)* dayheight
+        #dayheight =
+        #x = secondofday-startsecond )*secondwidth + x_offset
+        for iday in xrange(10):
+            date1 = endday - timedelta(days=iday)
+            label_date =Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
+            label_date.pos = (20, offset_yd+ (endday-date1).days * day_height)
+            self.add_widget(label_date)
+
+        for ihour in xrange(24):
+            hour0 = datetime(2010,1,1)
+            print hour0
+
+            hour1 = hour0- timedelta(hours=ihour)
+            label_date =Label(text=hour1.strftime("%H"),font_size=sp(13),size_hint=(None,None),size=(0,0))
+            label_date.pos = (offset_x + hour1.hour*3600*second_width, offset_y)
+            self.add_widget(label_date)
+
+        for entry in self.log2:
+            try:
+                date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+
+                print "paint: x,y"
+                if (endday-date1).days > n_days or (endday-date1).days <0:
+                    #too long ago or in the future...
+                    continue
+                if entry[2]=='singleevent':
+                    #paint circle and label
+                    x = offset_x + (date1.hour*3600+date1.minute*60) * second_width
+                    y = offset_yd + (endday-date1).days * day_height
+                    print "paint singleevent: x,y",x,y
+                    with self.canvas:
+                        #Line(rectangle=(x,y,day_height,day_height),width=3)
+                        Color(0.9,0.9,0.1)
+                        Line(circle=(x,y,10))
+                    label_singleevent = Label(text=str(entry[1]),font_size=sp(12),size_hint=(None,None),size=(0,0),pos=(x,y))
+                    self.add_widget(label_singleevent)
+                elif entry[2]=='startstop':
+                    date2 = datetime.strptime(str(entry[8]),"%Y-%m-%d %H:%M")
+
+                    x1 = offset_x + (date1.hour*3600+date1.minute*60) * second_width
+                    y1 = offset_yd-day_height/4 + (endday-date1).days * day_height
+                    x2 = offset_x + (date2.hour*3600+date2.minute*60) * second_width
+                    y2 = offset_yd+day_height/4 + (endday-date2).days * day_height
+                    print "paint startstop: x,y,x2,y2",x1,y1,x2,y2
+                    with self.canvas.before:
+                        Color(0.4,0.9,0.1,0.5)
+                        Line(rectangle=(x1,y1,x2-x1,y2-y1),width=1)
+                        Rectangle(pos=(x1,y1),size=(x2-x1,y2-y1))
+                    #paint a rectangle from start to stop
+                    label_startstop = Label(text=str(entry[1]),font_size=sp(12),size_hint=(None,None),size=(0,0),pos=(x1,y1))
+                    self.add_widget(label_startstop)
+                    #print str(entry[1]),sp(12),(x1,y1)
+            except Exception, e:
+                Logger.error("Paint-log-error" + str(e) + str(entry))
+                print "errorororor"
+                pass
+
+    def on_touch_down(self,touch):
+        if self.collide_point(*touch.pos):
+            self.paintAll()
 
 
 class MainView(BoxLayout):
@@ -969,68 +1069,38 @@ class MainView(BoxLayout):
         print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
         scrollview= ScrollView()
-        gridlayout = GridLayout(cols=1,spacing=5,size_hint_y =None)
+        stacklayout = StackLayout(cols=1,spacing=5,size_hint_y =None)
         i=0
         lastdate = datetime(2010,1,1,0,0)
         print "lastdate:  ",lastdate
         for entry in self.log2:
-
-            date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
-            print date1, date1-lastdate, (date1-lastdate).days
-            if (abs((date1-lastdate).days) > 1 ):
-                lastdate = date1
-                date_label = Label(text=date1.strftime("%A,    %Y-%m-%d"),color=(0.7,1,0.8,1),font_size=sp(16))
-                gridlayout.add_widget(date_label)
-                date_label.height = 33
-                gridlayout.height += date_label.height
-            entryp = ListEntry2(entry=entry,listindex=i)
-            gridlayout.add_widget(entryp)
-            gridlayout.height += entryp.height
-            print "entryp-height: ", entryp.height, gridlayout.height
-            i += 1
-        scrollview.add_widget(gridlayout)
+            try:
+                date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+                print date1, date1-lastdate, (date1-lastdate).days
+                if (abs((date1-lastdate).days) > 1 ):
+                    lastdate = date1
+                    date_label = Label(text=date1.strftime("%A,    %Y-%m-%d"),color=(0.7,1,0.8,1),font_size=sp(16),size_hint=(1,None))
+                    stacklayout.add_widget(date_label)
+                    date_label.height = sp(38)
+                    stacklayout.height += date_label.height
+                entryp = ListEntry2(entry=entry,listindex=i,size_hint=(1,None), height = sp(80))
+                stacklayout.add_widget(entryp)
+                stacklayout.height += entryp.height
+                print "entryp-height: ", entryp.height, stacklayout.height
+                i += 1
+            except Exception, e:
+                Logger.error("couldn't create entry number " + str(i) + str(entry) + str(e))
+        scrollview.add_widget(stacklayout)
         self.bv.add_widget(scrollview )
         scrollview.scroll_y = 0
 
     def paint_log(self,instance=None):
         print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
-        scrollview= ScrollView()
-        relatlayout = RelativeLayout()
-        relatlayout.height = self.height
-        relatlayout.width = self.width
+        relatlayout = AllInOneGraph(log2=self.log2)
+        self.bv.add_widget(relatlayout )
+        relatlayout.paintAll()
 
-        anz_days=10
-        anz_hours=24
-        #position anhand der zeit bestimmen:
-        #y = (day - startday)* dayheight
-        #dayheight =
-        #x = secondofday-startsecond )*secondwidth + x_offset
-
-        for entry in self.log2:
-            try:
-                date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
-
-                if entry['type']=='startstop':
-                    pass
-                    #paint a rectangle from start to stop
-                elif entry['type']=='singleevent':
-                    pass
-                    #paint circle and label
-
-                if (abs((date1-lastdate).days) > 1 ):
-                    lastdate = date1
-                    date_label = Label(text=date1.strftime("%A,    %Y-%m-%d"),color=(0.7,1,0.8,1),font_size=sp(16))
-                    relatlayout.add_widget(date_label)
-                    date_label.height = 33
-                    relatlayout.height += date_label.height
-                entryp = ListEntry2(entry=entry,listindex=i)
-                relatlayout.add_widget(entryp)
-            except:
-                pass
-        scrollview.add_widget(relatlayout)
-        self.bv.add_widget(scrollview )
-        scrollview.scroll_y = 0
 
 
     def show_home_view(self):
