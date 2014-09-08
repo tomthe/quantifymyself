@@ -14,6 +14,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import ListProperty, StringProperty, ObjectProperty, NumericProperty,AliasProperty
 from kivy.logger import Logger
+from kivy.clock import Clock
 from kivy.metrics import dp,sp
 from kivy.app import App
 #from time import strftime, strptime
@@ -744,9 +745,11 @@ class ButtonView(StackLayout):
         self.log = kwargs['log']
         self.log2 = kwargs['log2']
         self.app = kwargs['app']
-        self.show_first_level()
+        self.size= sp(400),sp(600)
+        #self.show_first_level()
+        Clock.schedule_once(self.show_first_level,0.5)
 
-    def show_first_level(self):
+    def show_first_level(self,instance=None):
         print "show_first_level 1 ", self.button_dict,self.log
         self.categories = []
         self.clear_widgets()
@@ -814,10 +817,6 @@ class ButtonView(StackLayout):
             ev = EnterView2(dict=instance.dict,categories=self.categories,parent_button_view=self)
             #ev.parent_button_view=self
             self.add_widget(ev)
-
-    def on_size(self,instance,value):
-        self.show_first_level()
-        pass
 
 class ListEntry(BoxLayout):
 
@@ -1177,6 +1176,7 @@ class QuantifyApp(App):
         return True
 
     def save(self):
+        Logger.info("save files...")
         self.on_pause()
 
     def on_stop(self):
