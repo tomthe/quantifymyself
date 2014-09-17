@@ -27,7 +27,7 @@ from kivy.uix.textinput import TextInput
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.11"
+__version__ = "0.2.12"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
@@ -1045,7 +1045,8 @@ class AllInOneGraph(RelativeLayout):
             except Exception, e:
                 Logger.error("Paint-log-error" + str(e) + str(entry))
                 print "errorororor"
-                pass
+
+
     def rgb_from_string(self,string):
         try:
             r = float( len(string) % 12 ) / 12
@@ -1202,6 +1203,7 @@ class QuantifyApp(App):
                 export_dir = "/quantifyMyself/"
             elif platform == "win":
                 export_dir = "C:/quantifyMyself/"
+            Logger.info("export... platform: " + platform + "; dir: " + export_dir)
 
             from os.path import exists
             if not exists(export_dir):
@@ -1216,12 +1218,12 @@ class QuantifyApp(App):
 
     def import_all(self):
         try:
-            export_dir = "/quantifyMyself/"
+            export_dir = "/storage/sdcard1/quantifyMyself/"
             if platform =="android":
                 export_dir = "/storage/sdcard1/quantifyMyself/"
             elif platform == "win":
                 export_dir = "C:/quantifyMyself/"
-
+            Logger.info("import... platform: " + platform + "; dir: " + export_dir)
             from os.path import exists
             if not exists(export_dir):
                 Logger.error("import failed! No import-directory! "+ export_dir)
@@ -1234,7 +1236,7 @@ class QuantifyApp(App):
 
     def writeJson(self,filename, data):
         with open(filename, 'w') as output:
-            dump(data, output, sort_keys=True, indent=4, separators=(',', ': ')) #json.dump
+            dump(data, output, sort_keys=True, separators=(',',':')) #json.dump
         print 'Wrote json to: ' + filename
 
 if __name__ == '__main__':
