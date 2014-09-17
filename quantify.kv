@@ -74,6 +74,12 @@
             ActionButton:
                 text: 'Paint Log'
                 on_press:root.paint_log()
+            ActionButton:
+                text: 'Export all'
+                on_press:root.export_all()
+            ActionButton:
+                text: 'Import all'
+                on_press:root.import_all()
 
 <ButtonView>:
 	orientation:'lr-tb'
@@ -141,7 +147,7 @@
     BoxLayout:
         orientation:'vertical'
         Label:
-            text:'Day: ' 
+            text:'Day: '
         Knob:
             id:sday
     BoxLayout:
@@ -173,7 +179,7 @@
         value:root.value
         on_value:root.change_value(self.value)
         #on_touch_down:root.test()
-	
+
 <CustomKnob>:
     sl:sl
     orientation:'horizontal'
