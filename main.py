@@ -27,7 +27,7 @@ from kivy.uix.textinput import TextInput
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.13"
+__version__ = "0.2.14"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
@@ -1164,9 +1164,14 @@ class QuantifyApp(App):
     filename_buttondict = 'buttons.json'
     filename_logdict = 'log.json'
     filename_log2dict = 'log2.json'
+
     def build(self):
+        self.mainBL = MainView(button_dict=self.button_dict,log=self.log,log2=self.log2,app=self)
+        return self.mainBL
+
+    def load_files(self):
         try:
-            self.button_dict = self.loadJson(self.filename_buttondict)
+            self.button_dict = self.loadJson(dir + self.filename_buttondict)
         except Exception,e:
             Logger.error('failed to load button-db, e: ' + str(e))
             self.button_dict =[{"button_id": 1,"calendars": [ { "name": "start" },  { "name": "stop" }], "lasttime": "2014-09-04 16:09",                "note": True,                "sliders": [                    {                        "slider_def": "5.0",                        "slider_max": "10.0",                        "slider_min": "0.0",                        "slider_name": "productivity"                    }                ],                "status": "stopped",                "text": "Work start stop",                "type": "startstop"}]
@@ -1180,8 +1185,7 @@ class QuantifyApp(App):
         except Exception,e:
             Logger.error('failed to load log-db, e: ' + str(e))
             self.log2 = [[1,        "4zeiten",        "log",        "",        "test|",        "tim1",        "2014-09-06 14:16",        "start1",        "2014-09-04 14:16",        "start2",        "2014-09-04 14:16",        "stop1",        "2014-09-04 14:16",        "slo1",        1.5,        "slo2",        2.0,        "vi1",        1.4,        "ve2",        2.0    ]]
-        self.mainBL = MainView(button_dict=self.button_dict,log=self.log,log2=self.log2,app=self)
-        return self.mainBL
+
 
     def on_pause(self):
         self.writeJson(self.filename_buttondict, self.button_dict)
@@ -1234,9 +1238,9 @@ class QuantifyApp(App):
             if not exists(export_dir):
                 Logger.error("import failed! No import-directory! "+ export_dir)
             else:
-                self.loadJson(export_dir + self.filename_buttondict)
-                self.loadJson(export_dir + self.filename_logdict)
-                self.loadJson(export_dir + self.filename_log2dict)
+                self.button_dict = self.loadJson(export_dir + self.filename_buttondict)
+                self.log = self.loadJson(export_dir + self.filename_logdict)
+                self.log2 = self.loadJson(export_dir + self.filename_log2dict)
         except Exception, e:
             Logger.error("import failed! "+ export_dir + ";   " + str(e))
 
