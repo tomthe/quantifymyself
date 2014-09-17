@@ -56,6 +56,7 @@ fullscreen = 0
 
 # (list) Permissions
 #android.permissions = INTERNET
+android.permissions = READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE
 
 # (int) Android API to use
 #android.api = 14
