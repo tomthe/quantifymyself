@@ -27,7 +27,7 @@ from kivy.uix.textinput import TextInput
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.12"
+__version__ = "0.2.13"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
@@ -1005,11 +1005,15 @@ class AllInOneGraph(RelativeLayout):
                     self.add_widget(label_singleevent)
                 elif entry[2]=='startstop':
                     date2 = datetime.strptime(str(entry[8]),"%Y-%m-%d %H:%M")
-
                     x1 = offset_x + (date1.hour*3600+date1.minute*60) * second_width
                     y1 = offset_yd-day_height/4 + (endday-date1).days * day_height
-                    x2 = offset_x + (date2.hour*3600+date2.minute*60) * second_width
-                    y2 = offset_yd+day_height/4 + (endday-date2).days * day_height
+
+                    if date2.day == date1.day:
+                        x2 = offset_x + (date2.hour*3600+date2.minute*60) * second_width
+                        y2 = offset_yd+day_height/4 + (endday-date2).days * day_height
+                    elif date2.day ==date1.day + 1:
+                        x2 = offset_x + (23*3600+59*60) * second_width
+                        y2 = offset_yd+day_height/4 + (endday-date1).days * day_height
                     print "paint startstop: x,y,x2,y2",x1,y1,x2,y2
                     with self.canvas.before:
                         Color(col[0],col[1],col[2])
@@ -1019,6 +1023,8 @@ class AllInOneGraph(RelativeLayout):
                     label_startstop = Label(text=str(entry[1]),font_size=sp(12),size_hint=(None,None),size=(x2-x1,0),pos=(x1,y1))
                     self.add_widget(label_startstop)
                     #print str(entry[1]),sp(12),(x1,y1)
+
+
                 elif entry[2]=='4times':
                     date2 = datetime.strptime(str(entry[8]), "%Y-%m-%d %H:%M")
                     date3 = datetime.strptime(str(entry[10]),"%Y-%m-%d %H:%M")
@@ -1198,12 +1204,12 @@ class QuantifyApp(App):
 
     def export_all(self):
         try:
-            export_dir = "/quantifyMyself/"
+            export_dir = "/storage/sdcard1/quantifyMyself/"
             if platform =="android":
-                export_dir = "/quantifyMyself/"
+                export_dir = "/storage/sdcard1/quantifyMyself/"
             elif platform == "win":
                 export_dir = "C:/quantifyMyself/"
-            Logger.info("export... platform: " + platform + "; dir: " + export_dir)
+            Logger.info("export... platform: " + str(platform) + "; dir: " + str(export_dir))
 
             from os.path import exists
             if not exists(export_dir):
@@ -1223,7 +1229,7 @@ class QuantifyApp(App):
                 export_dir = "/storage/sdcard1/quantifyMyself/"
             elif platform == "win":
                 export_dir = "C:/quantifyMyself/"
-            Logger.info("import... platform: " + platform + "; dir: " + export_dir)
+            Logger.info("import... platform: " + str(platform) + "; dir: " + str(export_dir))
             from os.path import exists
             if not exists(export_dir):
                 Logger.error("import failed! No import-directory! "+ export_dir)
