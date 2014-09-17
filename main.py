@@ -17,6 +17,7 @@ from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.metrics import dp,sp
 from kivy.app import App
+from kivy import platform
 #from time import strftime, strptime
 from random import randint
 from datetime import datetime,timedelta
@@ -926,9 +927,9 @@ class ListEntry2(RelativeLayout):
             pass
             #print "on_size...pos listentry", self.pos,self.size, self.entry,self.size
             # self.height = 66
-class AllInOneGraph(RelativeLayout):
-    pass
 
+
+class AllInOneGraph(RelativeLayout):
 
     def __init__(self, **kwargs):
         #self.entry=kwargs['entry']
@@ -1140,6 +1141,12 @@ class MainView(BoxLayout):
         relatlayout.paintAll()
 
 
+    def export_all(self):
+        self.app.export_all()
+
+    def import_all(self):
+        self.app.import_all()
+
 
     def show_home_view(self):
         self.bv.show_first_level()
@@ -1188,11 +1195,47 @@ class QuantifyApp(App):
         print 'Read json from: ' + filename
         return data
 
+    def export_all(self):
+        try:
+            export_dir = "/quantifyMyself/"
+            if platform =="android":
+                export_dir = "/quantifyMyself/"
+            elif platform == "win":
+                export_dir = "C:/quantifyMyself/"
+
+            from os.path import exists
+            if not exists(export_dir):
+                from os import makedirs
+                makedirs(export_dir)
+
+            self.writeJson(export_dir + self.filename_buttondict, self.button_dict)
+            self.writeJson(export_dir + self.filename_logdict, self.log)
+            self.writeJson(export_dir + self.filename_log2dict, self.log2)
+        except Exception, e:
+            Logger.error("export failed! "+ export_dir + ";   " + str(e))
+
+    def import_all(self):
+        try:
+            export_dir = "/quantifyMyself/"
+            if platform =="android":
+                export_dir = "/storage/sdcard1/quantifyMyself/"
+            elif platform == "win":
+                export_dir = "C:/quantifyMyself/"
+
+            from os.path import exists
+            if not exists(export_dir):
+                Logger.error("import failed! No import-directory! "+ export_dir)
+            else:
+                self.loadJson(export_dir + self.filename_buttondict)
+                self.loadJson(export_dir + self.filename_logdict)
+                self.loadJson(export_dir + self.filename_log2dict)
+        except Exception, e:
+            Logger.error("import failed! "+ export_dir + ";   " + str(e))
+
     def writeJson(self,filename, data):
         with open(filename, 'w') as output:
             dump(data, output, sort_keys=True, indent=4, separators=(',', ': ')) #json.dump
         print 'Wrote json to: ' + filename
-
 
 if __name__ == '__main__':
     QuantifyApp().run()
