@@ -27,7 +27,7 @@ from kivy.uix.textinput import TextInput
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.14"
+__version__ = "0.2.15"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
@@ -1166,6 +1166,7 @@ class QuantifyApp(App):
     filename_log2dict = 'log2.json'
 
     def build(self):
+        self.load_files()
         self.mainBL = MainView(button_dict=self.button_dict,log=self.log,log2=self.log2,app=self)
         return self.mainBL
 
