@@ -27,7 +27,7 @@ from kivy.uix.textinput import TextInput
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.15"
+__version__ = "0.2.16"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
@@ -105,6 +105,7 @@ class Knob(Label):
     allow_out_of_range = False
     step=0.1
     last_y = 0
+    touch_start_x = 0
 
     def __init__(self, **kwargs):
         #print "init quantbutton",kwargs
@@ -126,6 +127,7 @@ class Knob(Label):
             touch.grab(self)
             self.timeLastMove=datetime.now()
             self.last_y =touch.pos[1]
+            self.touch_start_x = touch.pos[0]
             # accept the touch.
             return True
 
@@ -136,8 +138,12 @@ class Knob(Label):
                 timediffseconds =0.01
             elif timediffseconds >1.9:
                 timediffseconds=1.9
+            minsize = min(self.width,self.height)
+            factor = 0.000001 + 0.0002 * (float(self.touch_start_x - touch.x) / minsize)
+            if factor <0.000002: factor = 0.000002
+            elif factor >0.0002: factor=0.0002
 
-            self.real_value = (self.real_value + 0.00002 * (self.max - self.min) * (touch.pos[1]-self.last_y) /timediffseconds)
+            self.real_value = (self.real_value + factor * (self.max - self.min) * (touch.pos[1]-self.last_y) /timediffseconds)
             if self.real_value < self.min:
                 self.real_value = self.min
             elif self.real_value > self.max:
@@ -406,7 +412,7 @@ class EnterView2(BoxLayout):
     def log_entry_2_log2(self,log1):
         #converts a dict-log-entry into a list-based log-entry
         log2=[]
-        #button_id, entryname,type,note,timename1,time1,timename2,time2,timename3,time3,timename4,time4,valuename1,value1,valuename2,value2,valuename3,value3,valuename4,value4
+        #button_id, entryname,type,note,categories,timename1,time1,timename2,time2,timename3,time3,timename4,time4,valuename1,value1,valuename2,value2,valuename3,value3,valuename4,value4
         if 'button_id' in log1:
             log2.append(log1['button_id'])
         else:
@@ -428,6 +434,8 @@ class EnterView2(BoxLayout):
             for cat in log1['categories']:
                 categories += cat + "|"
             categories = categories[:-1]
+        else:
+            categories = "root"
         log2.append(categories)
 
         if 'datetimes' in log1:
@@ -441,22 +449,22 @@ class EnterView2(BoxLayout):
                         log2.append(time['datetime'])
                     except Exception, e:
                         print "Error, couldnt add time1 " +str(i)+ str(e) + ";  " + time
-                        log2.append("no_timename")
-                        log2.append("no_time")
+                        log2.append("")
+                        log2.append("")
             if i<4:
                 for j in xrange(i,4,1):
-                    log2.append("no_timename")
-                    log2.append("no_time")
+                    log2.append("")
+                    log2.append("")
 
         else:
-            log2.append('no_timename1')
-            log2.append('no_time1')
-            log2.append('no_timename2')
-            log2.append('no_time2')
-            log2.append('no_timename3')
-            log2.append('no_time3')
-            log2.append('no_timename4')
-            log2.append('no_time4')
+            log2.append('')
+            log2.append('')
+            log2.append('')
+            log2.append('')
+            log2.append('')
+            log2.append('')
+            log2.append('')
+            log2.append('')
 
 
         if 'values' in log1:
@@ -470,21 +478,21 @@ class EnterView2(BoxLayout):
                         log2.append(value['value'])
                     except Exception, e:
                         print "Error, couldnt add value "+str(i) + str(e) + ";  " + value
-                        log2.append("no_valname")
-                        log2.append("no_value")
+                        log2.append("")
+                        log2.append("")
             if i<4:
                 for j in xrange(i,4,1):
-                    log2.append("no_valname")
-                    log2.append("no_value")
+                    log2.append("")
+                    log2.append("")
         else:
-            log2.append('no_valname1')
-            log2.append('no_val1')
-            log2.append('no_valname2')
-            log2.append('no_val2')
-            log2.append('no_valname3')
-            log2.append('no_val3')
-            log2.append('no_valname4')
-            log2.append('no_val4')
+            log2.append('')
+            log2.append('')
+            log2.append('')
+            log2.append('')
+            log2.append('')
+            log2.append('')
+            log2.append('')
+            log2.append('')
         print log2
         return log2
 
@@ -519,10 +527,10 @@ class NewEnterView2(BoxLayout):
 
     def add_ok_cancel(self):
         bl= BoxLayout(orientation='horizontal')
-        bt_ok = Button(text='OK2')
+        bt_ok = Button(text='OK')
         bl.add_widget(bt_ok)
         bt_ok.bind(on_press=self.okay)
-        bt_cancel = Button(text='Cancel2')
+        bt_cancel = Button(text='Cancel')
         bl.add_widget(bt_cancel)
         bt_cancel.bind(on_press=self.cancel)
         self.add_widget(bl)
@@ -1164,6 +1172,7 @@ class QuantifyApp(App):
     filename_buttondict = 'buttons.json'
     filename_logdict = 'log.json'
     filename_log2dict = 'log2.json'
+    filename_log2csv = 'log2.csv'
 
     def build(self):
         self.load_files()
@@ -1192,6 +1201,7 @@ class QuantifyApp(App):
         self.writeJson(self.filename_buttondict, self.button_dict)
         self.writeJson(self.filename_logdict, self.log)
         self.writeJson(self.filename_log2dict, self.log2)
+        self.log2csv(self.filename_log2csv)
         return True
 
     def save(self):
@@ -1224,6 +1234,7 @@ class QuantifyApp(App):
             self.writeJson(export_dir + self.filename_buttondict, self.button_dict)
             self.writeJson(export_dir + self.filename_logdict, self.log)
             self.writeJson(export_dir + self.filename_log2dict, self.log2)
+            self.log2csv(export_dir + self.filename_log2csv)
         except Exception, e:
             Logger.error("export failed! "+ export_dir + ";   " + str(e))
 
@@ -1244,6 +1255,34 @@ class QuantifyApp(App):
                 self.log2 = self.loadJson(export_dir + self.filename_log2dict)
         except Exception, e:
             Logger.error("import failed! "+ export_dir + ";   " + str(e))
+
+    def log2csv(self,filename="log2.csv"):
+        try:
+            f = open(filename, "w")
+            f.writelines("button_id; entryname;type;note;categories;timename1;time1;timename2;time2;timename3;time3;timename4;time4;valuename1;value1;valuename2;value2;valuename3;value3;valuename4;value4")
+            for log_entry in self.log2:
+                csv_string = ""
+
+                for item in log_entry:
+                    if item=="no_timename" or item=="no_time" or item=="no_valname" or item=="no_value":
+                        item =""
+                    if type(item) is unicode:
+                        item = item.encode('utf-8')
+                    csv_string += str(item) + ";"
+                csv_string = '/n'.join(csv_string.splitlines())
+                #csv_string.replace("\n", "/n")
+                f.write("\n" + csv_string)
+
+            print "end csv formatting...  ", filename
+
+            f.close()
+            print "end csv formatting2...  ", filename
+            Logger.info("exported to csv: " + filename)
+            print "end csv formatting3..  ", filename
+        except Exception, e:
+            Logger.error("Writing CSV-file didn't work... " + str(e))
+            print "end csv formatting.4..  ", filename
+        print "end csv formatting...6  ", filename
 
     def writeJson(self,filename, data):
         with open(filename, 'w') as output:
