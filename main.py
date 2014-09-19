@@ -139,9 +139,9 @@ class Knob(Label):
             elif timediffseconds >1.9:
                 timediffseconds=1.9
             minsize = min(self.width,self.height)
-            factor = 0.000001 + 0.0002 * (float(self.touch_start_x - touch.x) / minsize)
-            if factor <0.000002: factor = 0.000002
-            elif factor >0.0002: factor=0.0002
+            factor = 0.00001 + 0.0002 * (float(self.touch_start_x - touch.x) / minsize)
+            if factor <0.000003: factor = 0.000003
+            elif factor >0.0001: factor=0.0001
 
             self.real_value = (self.real_value + factor * (self.max - self.min) * (touch.pos[1]-self.last_y) /timediffseconds)
             if self.real_value < self.min:
@@ -972,7 +972,7 @@ class AllInOneGraph(RelativeLayout):
         #y = (day - startday)* dayheight
         #dayheight =
         #x = secondofday-startsecond )*secondwidth + x_offset
-        for iday in xrange(10):
+        for iday in xrange(n_days):
             date1 = endday - timedelta(days=iday)
             label_date =Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
             label_date.pos = (20, offset_yd+ (endday-date1).days * day_height)
@@ -997,8 +997,8 @@ class AllInOneGraph(RelativeLayout):
                 col = self.rgb_from_string(str(entry[1]))
 
                 print "paint: x,y, color: ", col,(endday-date1).days, entry[1]
-                if (endday-date1).days > n_days or (endday-date1).days <0:
-                    #too long ago or in the future...
+                if (endday-date1).days >= n_days or (endday-date1).days <-1:
+                    #print "too long ago or in the future...", (endday-date1).days; entry
                     continue
                 if entry[2]=='singleevent':
                     #paint circle and label
