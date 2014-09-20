@@ -27,7 +27,7 @@ from kivy.uix.textinput import TextInput
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.17"
+__version__ = "0.2.18"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
@@ -1256,9 +1256,9 @@ class QuantifyApp(App):
             if not exists(export_dir):
                 Logger.error("import failed! No import-directory! "+ export_dir)
             else:
-                self.button_dict = self.loadJson(export_dir + self.filename_buttondict)
-                self.log = self.loadJson(export_dir + self.filename_logdict)
-                self.log2 = self.loadJson(export_dir + self.filename_log2dict)
+                self.mainBL.bv.button_dict = self.mainBL.bv.button_dict = self.button_dict = self.loadJson(export_dir + self.filename_buttondict)
+                self.mainBL.bv.log = self.mainBL.log = self.log = self.loadJson(export_dir + self.filename_logdict)
+                self.mainBL.bv.log2 =self.mainBL.log2 =  self.log2 = self.loadJson(export_dir + self.filename_log2dict)
                 self.mainBL.bv.show_first_level()
                 Logger.info("import successfull: " + export_dir + self.filename_buttondict + "; self.filename_log: "+ self.filename_logdict)
         except Exception, e:
