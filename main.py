@@ -27,7 +27,7 @@ from kivy.uix.textinput import TextInput
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.16"
+__version__ = "0.2.17"
 
 class QuantButton(Widget):
     '''Button with some special properties: different colors for different type-variables; long-press-event after 1.2 seconds pressing'''
@@ -1181,7 +1181,7 @@ class QuantifyApp(App):
 
     def load_files(self):
         try:
-            self.button_dict = self.loadJson(dir + self.filename_buttondict)
+            self.button_dict = self.loadJson(self.filename_buttondict)
         except Exception,e:
             Logger.error('failed to load button-db, e: ' + str(e))
             self.button_dict =[{"button_id": 1,"calendars": [ { "name": "start" },  { "name": "stop" }], "lasttime": "2014-09-04 16:09",                "note": True,                "sliders": [                    {                        "slider_def": "5.0",                        "slider_max": "10.0",                        "slider_min": "0.0",                        "slider_name": "productivity"                    }                ],                "status": "stopped",                "text": "Work start stop",                "type": "startstop"}]
@@ -1201,7 +1201,7 @@ class QuantifyApp(App):
         self.writeJson(self.filename_buttondict, self.button_dict)
         self.writeJson(self.filename_logdict, self.log)
         self.writeJson(self.filename_log2dict, self.log2)
-        self.log2csv(self.filename_log2csv)
+        #self.log2csv(self.filename_log2csv)
         return True
 
     def save(self):
@@ -1212,6 +1212,7 @@ class QuantifyApp(App):
         self.on_pause()
 
     def loadJson(self,filename):
+        Logger.info("load Json. Filename: " + filename)
         with open(filename, 'r') as input:
             data = load(input) #json.load
         print 'Read json from: ' + filename
@@ -1219,6 +1220,11 @@ class QuantifyApp(App):
 
     def export_all(self):
         try:
+            try:
+                self.log2csv(self.filename_log2csv)
+            except:
+                Logger.error("log2csv failed")
+            Logger.info("export all..." + self.filename_buttondict + " ; " + self.filename_log2dict)
             export_dir = "/storage/sdcard1/quantifyMyself/"
             if platform =="android":
                 export_dir = "/storage/sdcard1/quantifyMyself/"
@@ -1253,6 +1259,8 @@ class QuantifyApp(App):
                 self.button_dict = self.loadJson(export_dir + self.filename_buttondict)
                 self.log = self.loadJson(export_dir + self.filename_logdict)
                 self.log2 = self.loadJson(export_dir + self.filename_log2dict)
+                self.mainBL.bv.show_first_level()
+                Logger.info("import successfull: " + export_dir + self.filename_buttondict + "; self.filename_log: "+ self.filename_logdict)
         except Exception, e:
             Logger.error("import failed! "+ export_dir + ";   " + str(e))
 
