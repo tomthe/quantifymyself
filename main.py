@@ -759,7 +759,7 @@ class ButtonView(StackLayout):
         Clock.schedule_once(self.show_first_level,0.5)
 
     def show_first_level(self,instance=None):
-        print "show_first_level 1 ", self.button_dict,self.log
+        Logger.info( "show_first_level 1 " + str(self.button_dict) + str(self.log2))
         self.categories = []
         self.clear_widgets()
         for button in self.button_dict:
@@ -936,6 +936,36 @@ class ListEntry2(RelativeLayout):
             #print "on_size...pos listentry", self.pos,self.size, self.entry,self.size
             # self.height = 66
 
+class TestScrollableAllInOneGraph(RelativeLayout):
+
+    def __init__(self, **kwargs):
+        #self.entry=kwargs['entry']
+        super(TestScrollableAllInOneGraph, self).__init__(**kwargs)
+        self.log2=kwargs['log2']
+        self.graph = ScrollableAllInOneGraph(log2=self.log2, size=(400,400),size_hint=(None,None))
+        self.add_widget(self.graph)
+
+        self.graph.paintAll()
+
+    def paintAll(self):
+        self.graph.paintAll()
+
+class ScrollableAllInOneGraph(ScrollView):
+    log2=None
+
+    def __init__(self, **kwargs):
+        #self.entry=kwargs['entry']
+        super(ScrollableAllInOneGraph, self).__init__(**kwargs)
+        self.log2=kwargs['log2']
+        self.scroll_x = 0.6
+        self.scroll_y = 0
+        self.graph = AllInOneGraph(log2=self.log2, size=(sp(1000),sp(1400)),size_hint=(None,None))
+        self.add_widget(self.graph)
+
+        self.graph.paintAll()
+
+    def paintAll(self):
+        self.graph.paintAll()
 
 class AllInOneGraph(RelativeLayout):
 
@@ -943,6 +973,7 @@ class AllInOneGraph(RelativeLayout):
         #self.entry=kwargs['entry']
         super(AllInOneGraph, self).__init__(**kwargs)
         self.log2=kwargs['log2']
+
 
 
     def paintAll(self):
@@ -1008,7 +1039,7 @@ class AllInOneGraph(RelativeLayout):
                     with self.canvas:
                         #Line(rectangle=(x,y,day_height,day_height),width=3)
                         Color(col[0],col[1],col[2])
-                        Line(circle=(x,y,10),width=2)
+                        Line(circle=(x,y,day_height*0.3),width=3)
                     label_singleevent = Label(text=str(entry[1]),font_size=sp(12),size_hint=(None,None),size=(0,0),pos=(x,y))
                     self.add_widget(label_singleevent)
                 elif entry[2]=='startstop':
@@ -1025,7 +1056,7 @@ class AllInOneGraph(RelativeLayout):
                     print "paint startstop: x,y,x2,y2",x1,y1,x2,y2
                     with self.canvas.before:
                         Color(col[0],col[1],col[2])
-                        Line(rectangle=(x1,y1,x2-x1,y2-y1),width=2)
+                        #Line(rectangle=(x1,y1,x2-x1,y2-y1),width=2)
                         Rectangle(pos=(x1,y1),size=(x2-x1,y2-y1))
                     #paint a rectangle from start to stop
                     label_startstop = Label(text=str(entry[1]),font_size=sp(12),size_hint=(None,None),size=(x2-x1,0),pos=(x1,y1))
@@ -1070,6 +1101,8 @@ class AllInOneGraph(RelativeLayout):
             Logger.error("rgb_from_string failed... string: '" + str(string) + "'; " +str(e) )
             r,g,b = 0.6,0.5,0.6
         return [r,g,b]
+
+
 
 
     def on_touch_down(self,touch):
@@ -1152,6 +1185,15 @@ class MainView(BoxLayout):
         print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
         relatlayout = AllInOneGraph(log2=self.log2)
+        self.bv.add_widget(relatlayout )
+        relatlayout.paintAll()
+
+    def paint_log_scroll(self,instance=None):
+        print "### the whole log2: ", self.log2
+        self.bv.clear_widgets()
+        relatlayout = ScrollableAllInOneGraph(log2=self.log2,size_hint=(None,None),size=self.size)#(500,500))
+        relatlayout.pos=self.bv.pos
+        relatlayout.size=self.bv.size
         self.bv.add_widget(relatlayout )
         relatlayout.paintAll()
 
