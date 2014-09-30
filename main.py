@@ -19,6 +19,8 @@ from kivy.clock import Clock
 from kivy.metrics import dp,sp
 from kivy.app import App
 from kivy import platform
+from kivy.uix.rst import RstDocument
+
 #from time import strftime, strptime
 from random import randint
 from datetime import datetime,timedelta
@@ -29,7 +31,7 @@ from kivy.uix.textinput import TextInput
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.20"
+__version__ = "0.2.22"
 
 
 class AllInOneGraph(RelativeLayout):
@@ -113,8 +115,8 @@ class AllInOneGraph(RelativeLayout):
                     with self.canvas:
                         #Line(rectangle=(x,y,day_height,day_height),width=3)
                         Color(col[0],col[1],col[2])
-                        Line(circle=(x,y,10),width=2)
-                    label_singleevent = Label(text=str(entry[1]),font_size=sp(12),size_hint=(None,None),size=(0,0),pos=(x,y))
+                        Line(circle=(x,y,10),width=3)
+                    label_singleevent = Label(text=str(entry[1]+str(entry[14])),font_size=sp(12),size_hint=(None,None),size=(0,0),pos=(x,y))
                     self.add_widget(label_singleevent)
                 elif entry[2]=='startstop':
                     date2 = datetime.strptime(str(entry[8]),"%Y-%m-%d %H:%M")
@@ -123,14 +125,14 @@ class AllInOneGraph(RelativeLayout):
 
                     if date2.day == date1.day:
                         x2 = self.offset_x + (date2.hour*3600+date2.minute*60) * self.second_width
-                        y2 = self.offset_yd+day_height/4 + (endday-date2).days * self.day_height
+                        y2 = self.offset_yd+self.day_height/4 + (endday-date2).days * self.day_height
                     elif date2.day ==date1.day + 1:
                         x2 = self.offset_x + (23*3600+59*60) * self.second_width
                         y2 = self.offset_yd+self.day_height/4 + (endday-date1).days * self.day_height
                     print "paint startstop: x,y,x2,y2",x1,y1,x2,y2
                     with self.canvas.before:
-                        Color(col[0],col[1],col[2])
-                        Line(rectangle=(x1,y1,x2-x1,y2-y1),width=2)
+                        Color(col[0],col[1],col[2],0.4)
+                        #Line(rectangle=(x1,y1,x2-x1,y2-y1),width=2)
                         Rectangle(pos=(x1,y1),size=(x2-x1,y2-y1))
                     #paint a rectangle from start to stop
                     label_startstop = Label(text=str(entry[1]),font_size=sp(12),size_hint=(None,None),size=(x2-x1,0),pos=(x1,y1))
@@ -153,8 +155,8 @@ class AllInOneGraph(RelativeLayout):
                     y4 = self.offset_yd+self.day_height/4 + (endday-date4).days * self.day_height
                     print "paint 4times: x,y,x2,y2...",x1,x2,x3,x4,x1,"x||y: ", y1,y2,y3,y4,(endday-date1).days,(endday-date2).days,(endday-date3).days,(endday-date4).days, "||||", date1.day
                     with self.canvas.before:
-                        Color(col[0],col[1],col[2],0.5)
-                        Line(rectangle=(x1,y1,x4-x1,y4-y1),width=2)
+                        Color(col[0],col[1],col[2],0.35)
+                        #Line(rectangle=(x1,y1,x4-x1,y4-y1),width=2)
                         Rectangle(pos=(x1,y1),size=(x4-x1,y4-y1))
                         Rectangle(pos=(x2,y2),size=(x3-x2,y3-y2))
                     #paint a rectangle from start to stop
@@ -292,9 +294,9 @@ class Knob(Label):
             elif timediffseconds >1.9:
                 timediffseconds=1.9
             minsize = min(self.width,self.height)
-            factor = 0.00001 + 0.0002 * (float(self.touch_start_x - touch.x) / minsize)
-            if factor <0.000003: factor = 0.000003
-            elif factor >0.0001: factor=0.0001
+            factor = 0.000007 + 0.00015 * (float(self.touch_start_x - touch.x) / minsize)
+            if factor <0.000004: factor = 0.000004
+            elif factor >0.00006: factor=0.00006
 
             self.real_value = (self.real_value + factor * (self.max - self.min) * (touch.pos[1]-self.last_y) /timediffseconds)
             if self.real_value < self.min:
@@ -670,11 +672,11 @@ class NewEnterView2(BoxLayout):
         #self.clear_widgets()
         self.on_cb4_newSubmenu(value=True)
 
-    def add_name_field(self):
+    def add_name_field(self,buttontext=""):
         bl=BoxLayout()
         lab = Label(text='Button-Text')
         bl.add_widget(lab)
-        self.ti_button_text = TextInput(text='')
+        self.ti_button_text = TextInput(text=buttontext)
         bl.add_widget(self.ti_button_text)
         self.add_widget(bl)
 
@@ -760,7 +762,7 @@ class NewEnterView2(BoxLayout):
         bl1_val.add_widget(textinput_max,0)
         lab4_val = Label(text='default')
         bl1_val.add_widget(lab4_val,0)
-        textinput_def = TextInput(text='1')
+        textinput_def = TextInput(text='5')
         bl1_val.add_widget(textinput_def,0)
 
         butplus_val = Button(text='+')
@@ -786,10 +788,11 @@ class NewEnterView2(BoxLayout):
 
     def on_cb1_singleEvent(self,instance=None,value=None):
         if value:
+            buttontext=self.ti_button_text.text
             self.clear_widgets()
             self.slider_list=[]
             self.calendar_list=[]
-            self.add_name_field()
+            self.add_name_field(buttontext)
             self.add_type_choice(choice='singleevent')
 
             print "on_cb1_singleEvent...",instance
@@ -803,12 +806,13 @@ class NewEnterView2(BoxLayout):
 
     def on_cb2_startstop(self,instance=None,value=None):
         if value:
+            buttontext=self.ti_button_text.text
             print "on_cb2_startstop...",instance
             self.clear_widgets()
             self.slider_list=[]
             self.calendar_list=[]
             self.add_type_choice(choice='startstop')
-            self.add_name_field()
+            self.add_name_field(buttontext)
 
             self.add_text()
             #add calender and '+'-button
@@ -820,11 +824,12 @@ class NewEnterView2(BoxLayout):
 
     def on_cb3_4times(self,instance=None,value=None):
         if value:
+            buttontext=self.ti_button_text.text
             self.clear_widgets()
             self.slider_list=[]
             self.calendar_list=[]
             self.add_type_choice(choice='4times')
-            self.add_name_field()
+            self.add_name_field(buttontext)
 
             print "on_cb3_4times...",instance
             self.add_cal(name='start1')
@@ -836,59 +841,66 @@ class NewEnterView2(BoxLayout):
 
     def on_cb4_newSubmenu(self,instance=None,value=None):
         if value:
+            try:
+                buttontext=self.ti_button_text.text
+            except:
+                buttontext=""
             print "on_cb4_newSubmenu...",instance
             self.clear_widgets()
             self.slider_list=[]
             self.calendar_list=[]
-            self.add_name_field()
+            self.add_name_field(buttontext)
             self.add_type_choice(choice='newSubmenu')
             #
             self.add_ok_cancel()
 
     def okay(self,instance=None):
-        newdict = {}
-        print ".................................................................................."
-        ID = randint(100,9999) #str(randint(100,9999))
-        newdict['button_id']=ID
-        newdict['text']=self.ti_button_text.text
-        if self.cb1_singleEvent.active:
-            newdict['type']= 'singleevent'
-        elif self.cb2_startstop.active:
-            newdict['type']= 'startstop'
-        elif self.cb3_4times.active:
-            newdict['type']= '4times'
-        elif self.cb4_newSubmenu.active:
-            newdict['type']= 'submenu'
+        try:
+            newdict = {}
+            print ".................................................................................."
+            ID = randint(100,9999) #str(randint(100,9999))
+            newdict['button_id']=ID
+            newdict['text']=self.ti_button_text.text
+            if self.cb1_singleEvent.active:
+                newdict['type']= 'singleevent'
+            elif self.cb2_startstop.active:
+                newdict['type']= 'startstop'
+            elif self.cb3_4times.active:
+                newdict['type']= '4times'
+            elif self.cb4_newSubmenu.active:
+                newdict['type']= 'submenu'
 
-        if  newdict['type'] in ['log','singleevent','startstop','4times']:
-            sliders=[]
-            print "sliderlist:  ", self.slider_list
-            for slider in self.slider_list:
-                slid_={}
-                slid_['slider_name'] = slider['name'].text
-                slid_['slider_min'] =str(float(slider['min'].text))
-                slid_['slider_max'] =str(float(slider['max'].text))
-                slid_['slider_def'] =str(float(slider['default'].text))
-                sliders.append(slid_)
-            newdict['sliders'] = sliders
-            print "sliders:  ", sliders
-            calendars=[]
-            for dateentry in self.calendar_list:
-                cal_={}
-                cal_['name'] = str(dateentry['name'].text)
-                calendars.append(cal_)
-            newdict['calendars']=calendars
+            if  newdict['type'] in ['log','singleevent','startstop','4times']:
+                sliders=[]
+                print "sliderlist:  ", self.slider_list
+                for slider in self.slider_list:
+                    slid_={}
+                    slid_['slider_name'] = slider['name'].text
+                    slid_['slider_min'] =str(float(slider['min'].text))
+                    slid_['slider_max'] =str(float(slider['max'].text))
+                    slid_['slider_def'] =str(float(slider['default'].text))
+                    sliders.append(slid_)
+                newdict['sliders'] = sliders
+                print "sliders:  ", sliders
+                calendars=[]
+                for dateentry in self.calendar_list:
+                    cal_={}
+                    cal_['name'] = str(dateentry['name'].text)
+                    calendars.append(cal_)
+                newdict['calendars']=calendars
 
-            newdict['note']=True
+                newdict['note']=True
 
-        elif newdict['type']=='submenu':
-            newdict['children'] = []
-        else:
-            print "no availible type!"
-            return 0
-        self.dict.append(newdict)
-        print "newdict:   ", newdict
-        self.cancel()
+            elif newdict['type']=='submenu':
+                newdict['children'] = []
+            else:
+                print "no availible type!"
+                return 0
+            self.dict.append(newdict)
+            print "newdict:   ", newdict
+            self.cancel()
+        except Exception, e:
+            Logger.error("couldnt create new Button. " + str(e))
 
     def cancel(self,instance=None):
         self.parent_button_view.clear_widgets()
@@ -1194,6 +1206,66 @@ class MainView(BoxLayout):
         scrollview.add_widget(stacklayout)
         self.bv.add_widget(scrollview )
         scrollview.scroll_y = 0
+
+    def entry2rst(self,entry,listindex=1):
+        txt= "\n\n"
+        print entry
+        print "linex:   " + str(entry[1]).encode('utf8', 'replace') + " | " + str(entry[2]).encode('utf8', 'replace')
+        #
+        txt += "" + str(entry[2]) + " "+ (" " * (max(0,14-(len(str(entry[2]))))))
+        txt += " " + str(entry[1]) + "     " + (" " * (max(0,14-(len(str(entry[1]))))))
+        txt += " " + str(entry[4]) + "     " + (" " * (max(0,14-(len(str(entry[1]))))))
+        txt += " " + str(entry[3]) + "     " + (" " * (max(0,14-(len(str(entry[1]))))))
+        txt += "\n\n"
+
+        txt += "**" + str(entry[13]) + "**: "+ (" " * (max(0,14-(len(str(entry[13]))))))
+        txt += " " + str(entry[14]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[14]))))))
+        txt += "**" + str(entry[15]) + "**: "+ (" " * (max(0,14-(len(str(entry[15]))))))
+        txt += " " + str(entry[16]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[16]))))))
+        txt += "**" + str(entry[17]) + "**: "+ (" " * (max(0,14-(len(str(entry[17]))))))
+        txt += " " + str(entry[18]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[18]))))))
+        txt += "**" + str(entry[19]) + "**: "+ (" " * (max(0,14-(len(str(entry[19]))))))
+        txt += " " + str(entry[20]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[20]))))))
+
+        txt += "\n\n"
+        txt += "" + str(entry[5]) + ":  "+ (" " * (max(0,14-(len(str(entry[6]))))))
+        txt += " " + str(entry[6]) + " ;     "+ (" " * (max(0,14-(len(str(entry[7]))))))
+        txt += "" + str(entry[7]) + ": "+ (" " * (max(0,14-(len(str(entry[8]))))))
+        txt += " " + str(entry[8]) + " ;      "+ (" " * (max(0,14-(len(str(entry[9]))))))
+        txt += "" + str(entry[9]) + ": "+ (" " * (max(0,14-(len(str(entry[10]))))))
+        txt += " " + str(entry[10]) + " ;      "+ (" " * (max(0,14-(len(str(entry[11]))))))
+        txt += "" + str(entry[11]) + ": "+ (" " * (max(0,14-(len(str(entry[10]))))))
+        txt += " " + str(entry[12]) + " ;      "+ (" " * (max(0,14-(len(str(entry[11]))))))
+        txt += "\n\n-----------------------------\n\n"
+        return txt
+
+    def list_log3_rst(self,instance=None):
+        print "### the whole log2: ", self.log2
+        self.bv.clear_widgets()
+        rst_text="""
+QuantifyMyself-Log
+==================
+
+"""
+        i=0
+        lastdate = datetime(2010,1,1,0,0)
+        print "lastdate:  ",lastdate
+        for entry in self.log2:
+            try:
+                date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+                print date1, date1-lastdate, (date1-lastdate).days
+                if (abs((date1-lastdate).days) >= 1 ):
+                    lastdate = datetime(date1.year,date1.month,date1.day)
+                    rst_text += "\n \n" + date1.strftime("%A,    %Y-%m-%d") + "\n-------------------------\n \n"
+                rst_text += self.entry2rst(entry=entry,listindex=i)
+                i += 1
+            except Exception, e:
+                Logger.error(rst_text)
+                Logger.error("couldn't create entry number " + str(i) + str(entry) + str(e))
+        Logger.info(" ##.,:   " + rst_text)
+        rst_doc = RstDocument(text = rst_text)
+        self.bv.add_widget(rst_doc)
+
 
     def paint_log(self,instance=None):
         print "### the whole log2: ", self.log2
