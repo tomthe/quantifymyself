@@ -64,6 +64,9 @@
                 text: 'Home'
                 on_press:root.show_home_view()
             ActionButton:
+                text: 'Show rstLog'
+                on_press:root.list_log3_rst()
+            ActionButton:
                 text: 'Show Log'
                 on_press:root.list_log2()
             ActionButton:
@@ -188,11 +191,13 @@
     sl:sl
     orientation:'horizontal'
     Label:
-        size_hint_x:0.15
+        size_hint_x:0.65
         text:root.ltext
-    Label:
-        size_hint_x:0.15
-        text:str(sl.value)
+        text_size:self.size
+        valign:'middle'
+#    Label:
+#        size_hint_x:0.15
+#        text:str(sl.value)
     Knob:
         id:sl
         min:root.min
