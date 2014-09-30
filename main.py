@@ -19,7 +19,6 @@ from kivy.clock import Clock
 from kivy.metrics import dp,sp
 from kivy.app import App
 from kivy import platform
-from kivy.uix.rst import RstDocument
 
 #from time import strftime, strptime
 from random import randint
@@ -1240,32 +1239,36 @@ class MainView(BoxLayout):
         return txt
 
     def list_log3_rst(self,instance=None):
-        print "### the whole log2: ", self.log2
-        self.bv.clear_widgets()
-        rst_text="""
-QuantifyMyself-Log
-==================
+        try:
+            from kivy.uix.rst import RstDocument
+            print "### the whole log2: ", self.log2
+            self.bv.clear_widgets()
+            rst_text="""
 
-"""
-        i=0
-        lastdate = datetime(2010,1,1,0,0)
-        print "lastdate:  ",lastdate
-        for entry in self.log2:
-            try:
-                date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
-                print date1, date1-lastdate, (date1-lastdate).days
-                if (abs((date1-lastdate).days) >= 1 ):
-                    lastdate = datetime(date1.year,date1.month,date1.day)
-                    rst_text += "\n \n" + date1.strftime("%A,    %Y-%m-%d") + "\n-------------------------\n \n"
-                rst_text += self.entry2rst(entry=entry,listindex=i)
-                i += 1
-            except Exception, e:
-                Logger.error(rst_text)
-                Logger.error("couldn't create entry number " + str(i) + str(entry) + str(e))
-        Logger.info(" ##.,:   " + rst_text)
-        rst_doc = RstDocument(text = rst_text)
-        self.bv.add_widget(rst_doc)
+    QuantifyMyself-Log
+    ==================
 
+    """
+            i=0
+            lastdate = datetime(2010,1,1,0,0)
+            print "lastdate:  ",lastdate
+            for entry in self.log2:
+                try:
+                    date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+                    print date1, date1-lastdate, (date1-lastdate).days
+                    if (abs((date1-lastdate).days) >= 1 ):
+                        lastdate = datetime(date1.year,date1.month,date1.day)
+                        rst_text += "\n \n" + date1.strftime("%A,    %Y-%m-%d") + "\n-------------------------\n \n"
+                    rst_text += self.entry2rst(entry=entry,listindex=i)
+                    i += 1
+                except Exception, e:
+                    Logger.error(rst_text)
+                    Logger.error("couldn't create entry number " + str(i) + str(entry) + str(e))
+            Logger.info(" ##.,:   " + rst_text)
+            rst_doc = RstDocument(text = rst_text)
+            self.bv.add_widget(rst_doc)
+        except Exception, e:
+            Logger.error("couldnt show the reStructuredText-Log!  " + str(e))
 
     def paint_log(self,instance=None):
         print "### the whole log2: ", self.log2
