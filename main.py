@@ -47,8 +47,10 @@ class AllInOneGraph(RelativeLayout):
 
     def __init__(self, **kwargs):
         #self.entry=kwargs['entry']
+        self.size = (600,600)
         super(AllInOneGraph, self).__init__(**kwargs)
         self.log2=kwargs['log2']
+        self.init_variables()
         #self.init_variables()
 
     def init_variables(self):
@@ -68,6 +70,7 @@ class AllInOneGraph(RelativeLayout):
             self.add_widget(label_date)
 
     def paintAll(self):
+        font_size=11
         self.canvas.clear()
         self.init_variables()
         print self.n_seconds, "seconds; sec_w: ", self.second_width, self.day_height
@@ -94,11 +97,13 @@ class AllInOneGraph(RelativeLayout):
 
         self.offset_yd +=self.day_height
 
-
+        label_extra_offset_y=0
 
 
         for entry in self.log2:
             try:
+                if label_extra_offset_y >self.day_height /2 + sp(font_size):
+                    label_extra_offset_y=0
                 date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
                 col = self.rgb_from_string(str(entry[1]))
 
@@ -115,7 +120,9 @@ class AllInOneGraph(RelativeLayout):
                         #Line(rectangle=(x,y,day_height,day_height),width=3)
                         Color(col[0],col[1],col[2])
                         Line(circle=(x,y,10),width=3)
-                    label_singleevent = Label(text=str(entry[1]+str(entry[14])),font_size=sp(12),size_hint=(None,None),size=(0,0),pos=(x,y))
+                    y=y-(self.day_height/4)+label_extra_offset_y
+                    label_singleevent = Label(text=str(entry[1]+": " + str(entry[14])),font_size=sp(font_size),size_hint=(None,None),size=(0,0),pos=(x,y))
+                    label_extra_offset_y += sp(font_size)
                     self.add_widget(label_singleevent)
                 elif entry[2]=='startstop':
                     date2 = datetime.strptime(str(entry[8]),"%Y-%m-%d %H:%M")
@@ -134,7 +141,8 @@ class AllInOneGraph(RelativeLayout):
                         #Line(rectangle=(x1,y1,x2-x1,y2-y1),width=2)
                         Rectangle(pos=(x1,y1),size=(x2-x1,y2-y1))
                     #paint a rectangle from start to stop
-                    label_startstop = Label(text=str(entry[1]),font_size=sp(12),size_hint=(None,None),size=(x2-x1,0),pos=(x1,y1))
+                    label_startstop = Label(text=str(entry[1]),font_size=sp(12),size_hint=(None,None),size=(x2-x1,0),pos=(x1,y1+label_extra_offset_y))
+                    label_extra_offset_y += sp(font_size)
                     self.add_widget(label_startstop)
                     #print str(entry[1]),sp(12),(x1,y1)
 
@@ -144,14 +152,21 @@ class AllInOneGraph(RelativeLayout):
                     date3 = datetime.strptime(str(entry[10]),"%Y-%m-%d %H:%M")
                     date4 = datetime.strptime(str(entry[12]),"%Y-%m-%d %H:%M")
 
-                    x1 = self.offset_x + (date1.hour*3600+date1.minute*60) * self.second_width
-                    y1 = self.offset_yd-self.day_height/4 + (endday-date1).days * self.day_height
-                    x2 = self.offset_x + (date2.hour*3600+date2.minute*60) * self.second_width
-                    y2 = self.offset_yd+self.day_height/4 + (endday-date2).days * self.day_height
-                    x3 = self.offset_x + (date3.hour*3600+date3.minute*60) * self.second_width
-                    y3 = self.offset_yd-self.day_height/4 + (endday-date3).days * self.day_height
-                    x4 = self.offset_x + (date4.hour*3600+date4.minute*60) * self.second_width
-                    y4 = self.offset_yd+self.day_height/4 + (endday-date4).days * self.day_height
+                    if date4.day == date1.day:
+                        x1 = self.offset_x + (date1.hour*3600+date1.minute*60) * self.second_width
+                        y1 = self.offset_yd-self.day_height/4 + (endday-date1).days * self.day_height
+                        x2 = self.offset_x + (date2.hour*3600+date2.minute*60) * self.second_width
+                        y2 = self.offset_yd+self.day_height/4 + (endday-date2).days * self.day_height
+                        x3 = self.offset_x + (date3.hour*3600+date3.minute*60) * self.second_width
+                        y3 = self.offset_yd-self.day_height/4 + (endday-date3).days * self.day_height
+                        x4 = self.offset_x + (date4.hour*3600+date4.minute*60) * self.second_width
+                        y4 = self.offset_yd+self.day_height/4 + (endday-date4).days * self.day_height
+                    elif date4.day == date1.day + 1:
+                        x3 = self.offset_x + (24*60*60) * self.second_width
+                        y3 = self.offset_yd-self.day_height/4 + (endday-date3).days * self.day_height
+                        x4 = self.offset_x + (24*60*60) * self.second_width
+                        y4 = self.offset_yd+self.day_height/4 + (endday-date4).days * self.day_height
+
                     print "paint 4times: x,y,x2,y2...",x1,x2,x3,x4,x1,"x||y: ", y1,y2,y3,y4,(endday-date1).days,(endday-date2).days,(endday-date3).days,(endday-date4).days, "||||", date1.day
                     with self.canvas.before:
                         Color(col[0],col[1],col[2],0.35)
@@ -159,7 +174,8 @@ class AllInOneGraph(RelativeLayout):
                         Rectangle(pos=(x1,y1),size=(x4-x1,y4-y1))
                         Rectangle(pos=(x2,y2),size=(x3-x2,y3-y2))
                     #paint a rectangle from start to stop
-                    label_startstop = Label(text=str(entry[1]),font_size=sp(12),size_hint=(None,None),size=(x2-x1,0),pos=(x1,y1))
+                    label_startstop = Label(text=str(entry[1]),font_size=sp(font_size),size_hint=(None,None),size=(x2-x1,0),pos=(x1,y1+label_extra_offset_y))
+                    label_extra_offset_y += sp(font_size)
                     self.add_widget(label_startstop)
                     #print str(entry[1]),sp(12),(x1,y1)
             except Exception, e:
@@ -179,6 +195,7 @@ class AllInOneGraph(RelativeLayout):
 
 
     def on_touch_down(self,touch):
+        #if self.
         if self.collide_point(*touch.pos):
             self.paintAll()
 
@@ -1244,7 +1261,6 @@ class MainView(BoxLayout):
             print "### the whole log2: ", self.log2
             self.bv.clear_widgets()
             rst_text="""
-
     QuantifyMyself-Log
     ==================
 
