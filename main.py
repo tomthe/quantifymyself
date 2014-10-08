@@ -69,6 +69,65 @@ class AllInOneGraph(RelativeLayout):
             label_date.pos = (self.offset_x + hour1.hour*3600*self.second_width, self.offset_y)
             self.add_widget(label_date)
 
+    def test_paint_line(self):
+        definition={'min':0,'max':10,'valname':'value', 'button_id':9077}
+
+        self.paint_line(definition,self.log2)
+        self.width +=200
+
+    def paint_line(self,description,log):
+ #button_id 0, 1entryname,type 2,note 3,categories 4, timename1 5,time1 6,timename2,time2 8,timename3,time3,timename4,time4 12, valuename1 13,value1 14,valuename2 15,value2 16,valuename3,value3 18 ,valuename4,value4 20
+
+        endday = datetime.now()
+        endday = datetime(endday.year,endday.month,endday.day)
+
+        points = []
+        offset_x = self.w
+        offset_y = self.offset_y
+        available_width=100
+        min,max = description['min'], description['max']
+        for entry in self.log2:
+            #try:
+                date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+                if (endday-date1).days >= self.n_days or (endday-date1).days <-1:
+                    #print "too long ago or in the future...", (endday-date1).days; entry
+                    continue
+                if entry[0]==description['button_id']:
+                    #this is a suiting entry
+                    #determine x: offset_x + scaled value;
+                    #scaled_value...: availible_width / (max-min) * (val - min)
+                    value = self.get_value_from_log2_entry(entry,description['valname'])
+                    x=offset_x + available_width / (max-min) * (value - min)
+                    #determine y: from the date. like in paint_all:
+
+                    y = self.offset_y+ ((endday-date1).days + 2) * self.day_height
+                    #+ (float((endday-date1).seconds) / 60 / 60/24)
+                    y = self.offset_y +  self.day_height * ( .5 + (float((endday-date1).seconds) / 60 / 60/24) + ((endday-date1).days + 1))
+                    print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
+
+                    with self.canvas:
+                        Line(circle=(x,y,2),width=1)
+                    #points.append((x,y))
+                    points.extend((x,y))
+
+            #except Exception, e:
+            #    Logger.error("Paint-line-log-error" + str(e) + str(entry))
+
+        with self.canvas:
+            Line(points=points)
+
+    def get_value_from_log2_entry(self,entry,valname):
+        if entry[13]==valname:
+            return entry[14]
+        elif entry[15]==valname:
+            return entry[16]
+        elif entry[17]==valname:
+            return entry[18]
+        elif entry[19]==valname:
+            return entry[20]
+        else:
+            return entry[14]
+
     def paintAll(self):
         font_size=11
         self.canvas.clear()
@@ -99,29 +158,31 @@ class AllInOneGraph(RelativeLayout):
 
         label_extra_offset_y=0
 
-
         for entry in self.log2:
             try:
-                if label_extra_offset_y >self.day_height /2 + sp(font_size):
-                    label_extra_offset_y=0
                 date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
-                col = self.rgb_from_string(str(entry[1]))
-
-                print "paint: x,y, color: ", col,(endday-date1).days, entry[1]
                 if (endday-date1).days >= self.n_days or (endday-date1).days <-1:
                     #print "too long ago or in the future...", (endday-date1).days; entry
                     continue
+
+                if label_extra_offset_y >self.day_height /2 + sp(font_size):
+                    label_extra_offset_y=0
+                col = self.rgb_from_string(str(entry[1]))
+
+                print "paint: x,y, color: ", col,(endday-date1).days, entry[1]
+
                 if entry[2]=='singleevent':
                     #paint circle and label
                     x = self.offset_x + (date1.hour*3600+date1.minute*60) * self.second_width
                     y = self.offset_yd + (endday-date1).days * self.day_height
-                    print "paint singleevent: x,y",x,y
+                    print "paint singleevent: x,y",x,y, entry[16], " - entry 18: ", entry[18]
                     with self.canvas:
                         #Line(rectangle=(x,y,day_height,day_height),width=3)
                         Color(col[0],col[1],col[2])
                         Line(circle=(x,y,10),width=3)
+                    txt=str(entry[1]+": " + str(entry[14]) + " " + str(entry[16]) + " " + str(entry[18]) + str(entry[20]))
                     y=y-(self.day_height/4)+label_extra_offset_y
-                    label_singleevent = Label(text=str(entry[1]+": " + str(entry[14])),font_size=sp(font_size),size_hint=(None,None),size=(0,0),pos=(x,y))
+                    label_singleevent = Label(text=txt,font_size=sp(font_size),size_hint=(None,None),size=(0,0),pos=(x,y))
                     label_extra_offset_y += sp(font_size)
                     self.add_widget(label_singleevent)
                 elif entry[2]=='startstop':
@@ -181,6 +242,7 @@ class AllInOneGraph(RelativeLayout):
             except Exception, e:
                 Logger.error("Paint-log-error" + str(e) + str(entry))
                 print "errorororor"
+        self.test_paint_line()
 
 
     def rgb_from_string(self,string):
