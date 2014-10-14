@@ -69,11 +69,44 @@ class AllInOneGraph(RelativeLayout):
             label_date.pos = (self.offset_x + hour1.hour*3600*self.second_width, self.offset_y)
             self.add_widget(label_date)
 
-    def test_paint_line(self):
-        definition={'min':0,'max':10,'valname':'value', 'button_id':9077}
+    def get_hours_from_2_dates(self,date1,date2):
+        return (date2-date1).seconds / float(3600)
 
-        self.paint_line(definition,self.log2)
-        self.width +=200
+    def entry2hours(self,entry):
+        if entry[2]=='startstop':
+            date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+            date2 = datetime.strptime(str(entry[8]),"%Y-%m-%d %H:%M")
+        elif entry[2]=='4times':
+            date1 = datetime.strptime(str(entry[8]),"%Y-%m-%d %H:%M")
+            date2 = datetime.strptime(str(entry[10]),"%Y-%m-%d %H:%M")
+        else:
+            return 0.1
+        return self.get_hours_from_2_dates(date1,date2)
+
+
+    def get_value_from_log2_entry(self,entry,valname):
+        if valname=="length":
+            return self.entry2hours(entry)
+        elif entry[13]==valname:
+            return entry[14]
+        elif entry[15]==valname:
+            return entry[16]
+        elif entry[17]==valname:
+            return entry[18]
+        elif entry[19]==valname:
+            return entry[20]
+        else:
+            return entry[14]
+
+
+    def test_paint_line(self):
+        definition1={'min':0,'max':15,'valname':'length', 'button_id':1, 'width':100}
+        definition2={'min':0,'max':10,'valname':'value', 'button_id':9077, 'width':200}
+        definitions = [definition1,definition2]
+        for definition in definitions:
+            self.paint_line(definition,self.log2)
+            self.width +=definition['width']
+
 
     def paint_line(self,description,log):
  #button_id 0, 1entryname,type 2,note 3,categories 4, timename1 5,time1 6,timename2,time2 8,timename3,time3,timename4,time4 12, valuename1 13,value1 14,valuename2 15,value2 16,valuename3,value3 18 ,valuename4,value4 20
@@ -82,9 +115,9 @@ class AllInOneGraph(RelativeLayout):
         endday = datetime(endday.year,endday.month,endday.day)
 
         points = []
-        offset_x = self.w
+        offset_x = self.width
         offset_y = self.offset_y
-        available_width=100
+        available_width= int(description['width'])
         min,max = description['min'], description['max']
         for entry in self.log2:
             #try:
@@ -107,6 +140,10 @@ class AllInOneGraph(RelativeLayout):
 
                     with self.canvas:
                         Line(circle=(x,y,2),width=1)
+                    txt=str(entry[1]+": " + str(value))
+                    y=y+sp(12)
+                    label_singleevent = Label(text=txt,font_size=sp(11),size_hint=(None,None),size=(0,0),pos=(x,y))
+                    self.add_widget(label_singleevent)
                     #points.append((x,y))
                     points.extend((x,y))
 
@@ -116,19 +153,9 @@ class AllInOneGraph(RelativeLayout):
         with self.canvas:
             Line(points=points)
 
-    def get_value_from_log2_entry(self,entry,valname):
-        if entry[13]==valname:
-            return entry[14]
-        elif entry[15]==valname:
-            return entry[16]
-        elif entry[17]==valname:
-            return entry[18]
-        elif entry[19]==valname:
-            return entry[20]
-        else:
-            return entry[14]
 
     def paintAll(self):
+        self.painted_width = self.width
         font_size=11
         self.canvas.clear()
         self.init_variables()
@@ -259,7 +286,9 @@ class AllInOneGraph(RelativeLayout):
     def on_touch_down(self,touch):
         #if self.
         if self.collide_point(*touch.pos):
-            self.paintAll()
+            print self.width, self.size, self.painted_width
+            if self.painted_width <=100:
+                self.paintAll()
 
 
 class QuantButton(Widget):
