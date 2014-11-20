@@ -675,7 +675,7 @@ class EnterView2(BoxLayout):
 
         self.parent_button_view.log.append(new_log_entry)
         self.parent_button_view.log2.append(self.log_entry_2_log2(new_log_entry))
-        print "log...  ", new_log_entry
+        #print "log...  ", new_log_entry
         self.cancelf()
 
     def log_entry_2_log2(self,log1):
@@ -762,7 +762,7 @@ class EnterView2(BoxLayout):
             log2.append('')
             log2.append('')
             log2.append('')
-        print log2
+        Logger.info("new entry: " + str(log2))
         return log2
 
 class NewEnterView2(BoxLayout):
@@ -1120,14 +1120,23 @@ class ListEntry(BoxLayout):
                 if type(value) is list:
                     for listitem in value:
                         bl = BoxLayout(orientation='vertical')
-                        for iteminside,valueinside in listitem.viewitems():
-                            lab = Label()
-                            lab.text = str(valueinside)
-                            bl.add_widget(lab)
+                        #print "bobo - ", listitem
+                        try:
+                            for iteminside,valueinside in listitem.viewitems():
+                                lab = Label()
+                                lab.text = str(valueinside)
+                                bl.add_widget(lab)
+                        except:
+                            try:
+                                lab = Label()
+                                lab.text = str(listitem)
+                                bl.add_widget(lab)
+                            except:
+                                pass
                         self.add_widget(bl)
                 else:
                     lab = Label()
-                    lab.text = value
+                    lab.text = str(value)
                     self.add_widget(lab)
                     self.height = lab.texture_size[1]
             except Exception,e:
@@ -1158,7 +1167,7 @@ class ListEntry2(RelativeLayout):
                     label_date2 = Label(text=str(self.entry[8])[10:])
                     bl_date.add_widget(label_date2)
             except Exception, e:
-                Logger.error("Show Log- date-error" + str(e))
+                pass#Logger.error("Show Log- date-error" + str(e))
             self.add_widget(bl_date)
 
 
@@ -1242,7 +1251,7 @@ class ScrollableAllInOneGraph(ScrollView):
         #self.entry=kwargs['entry']
         super(ScrollableAllInOneGraph, self).__init__(**kwargs)
         self.log2=kwargs['log2']
-        self.scroll_x = 0.6
+        self.scroll_x = 0.0
         self.scroll_y = 0
         try:
             self.n_days = kwargs['n_days']
@@ -1281,14 +1290,14 @@ class MainView(BoxLayout):
 
 
     def list_log(self,instance=None):
-        print "### the whole log: ", self.log
+        #print "### the whole log: ", self.log
         self.bv.clear_widgets()
         scrollview= ScrollView()
         gridlayout = GridLayout(cols=1,spacing=5,size_hint_y =None)
 
         gridlayout.size_hint_y =None
         for entry in self.log:
-            print "###entry  ", entry
+            #print "###entry  ", entry
             if type(entry) is list:
                 pass
             else:
@@ -1296,7 +1305,7 @@ class MainView(BoxLayout):
                 entryp.height =100
                 gridlayout.add_widget(entryp)
                 gridlayout.height += entryp.height
-                print "hhh: ", entryp.height, gridlayout.height
+                #print "hhh: ", entryp.height, gridlayout.height
         scrollview.add_widget(gridlayout)
         self.bv.add_widget(scrollview )
         scrollview.scroll_y = 0
@@ -1308,11 +1317,11 @@ class MainView(BoxLayout):
         stacklayout = StackLayout(cols=1,spacing=5,size_hint_y =None)
         i=0
         lastdate = datetime(2010,1,1,0,0)
-        print "lastdate:  ",lastdate
+        #print "lastdate:  ",lastdate
         for entry in self.log2:
             try:
                 date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
-                print date1, date1-lastdate, (date1-lastdate).days
+                #print date1, date1-lastdate, (date1-lastdate).days
                 if (abs((date1-lastdate).days) >= 1 ):
                     lastdate = datetime(date1.year,date1.month,date1.day)
                     date_label = Label(text=date1.strftime("%A,    %Y-%m-%d"),color=(0.7,1,0.8,1),font_size=sp(16),size_hint=(1,None))
@@ -1322,18 +1331,18 @@ class MainView(BoxLayout):
                 entryp = ListEntry2(entry=entry,listindex=i,size_hint=(1,None), height = sp(80))
                 stacklayout.add_widget(entryp)
                 stacklayout.height += entryp.height + 4
-                print "entryp-height: ", entryp.height, stacklayout.height
+                #print "entryp-height: ", entryp.height, stacklayout.height
                 i += 1
             except Exception, e:
-                Logger.error("couldn't create entry number " + str(i) + str(entry) + str(e))
+                pass#Logger.error("ListLog2 - couldn't create entry number " + str(i) + str(entry) + str(e))
         scrollview.add_widget(stacklayout)
         self.bv.add_widget(scrollview )
         scrollview.scroll_y = 0
 
     def entry2rst(self,entry,listindex=1):
         txt= "\n\n"
-        print entry
-        print "linex:   " + str(entry[1]).encode('utf8', 'replace') + " | " + str(entry[2]).encode('utf8', 'replace')
+        #print entry
+        #print "linex:   " + str(entry[1]).encode('utf8', 'replace') + " | " + str(entry[2]).encode('utf8', 'replace')
         #
         txt += "" + str(entry[2]) + " "+ (" " * (max(0,14-(len(str(entry[2]))))))
         txt += " " + str(entry[1]) + "     " + (" " * (max(0,14-(len(str(entry[1]))))))
@@ -1341,13 +1350,13 @@ class MainView(BoxLayout):
         txt += " " + str(entry[3]) + "     " + (" " * (max(0,14-(len(str(entry[1]))))))
         txt += "\n\n"
 
-        txt += "**" + str(entry[13]) + "**: "+ (" " * (max(0,14-(len(str(entry[13]))))))
+        txt += "  " + str(entry[13]) + "  : "+ (" " * (max(0,14-(len(str(entry[13]))))))
         txt += " " + str(entry[14]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[14]))))))
-        txt += "**" + str(entry[15]) + "**: "+ (" " * (max(0,14-(len(str(entry[15]))))))
+        txt += "  " + str(entry[15]) + "  : "+ (" " * (max(0,14-(len(str(entry[15]))))))
         txt += " " + str(entry[16]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[16]))))))
-        txt += "**" + str(entry[17]) + "**: "+ (" " * (max(0,14-(len(str(entry[17]))))))
+        txt += "  " + str(entry[17]) + "  : "+ (" " * (max(0,14-(len(str(entry[17]))))))
         txt += " " + str(entry[18]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[18]))))))
-        txt += "**" + str(entry[19]) + "**: "+ (" " * (max(0,14-(len(str(entry[19]))))))
+        txt += "  " + str(entry[19]) + "  : "+ (" " * (max(0,14-(len(str(entry[19]))))))
         txt += " " + str(entry[20]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[20]))))))
 
         txt += "\n\n"
@@ -1372,8 +1381,8 @@ class MainView(BoxLayout):
 """
             i=0
             lastdate = datetime(2010,1,1,0,0)
-            print "lastdate:  ",lastdate
-            for entry in self.log2:
+            #print "lastdate:  ",lastdate
+            for entry in self.log2[-80:]:
                 try:
                     date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
                     #print date1, date1-lastdate, (date1-lastdate).days
@@ -1385,9 +1394,10 @@ class MainView(BoxLayout):
                 except Exception, e:
                     Logger.error(rst_text)
                     Logger.error("couldn't create entry number " + str(i) + str(entry) + str(e))
-            Logger.info(" ##.,:   " + rst_text)
+            #Logger.info(" ##.,:   " + rst_text)
             rst_doc = RstDocument(text = rst_text)
             self.bv.add_widget(rst_doc)
+            rst_doc.scroll_y=0
         except Exception, e:
             Logger.error("couldnt show the reStructuredText-Log!  " + str(e))
 
