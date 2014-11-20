@@ -30,7 +30,7 @@ from kivy.uix.textinput import TextInput
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.22"
+__version__ = "0.2.25"
 
 
 class AllInOneGraph(RelativeLayout):
@@ -50,6 +50,10 @@ class AllInOneGraph(RelativeLayout):
         self.size = (600,600)
         super(AllInOneGraph, self).__init__(**kwargs)
         self.log2=kwargs['log2']
+        try:
+            self.n_days = kwargs['n_days']
+        except:
+            self.n_days = 10
         self.init_variables()
         #self.init_variables()
 
@@ -100,9 +104,10 @@ class AllInOneGraph(RelativeLayout):
 
 
     def test_paint_line(self):
-        definition1={'min':0,'max':15,'valname':'length', 'button_id':1, 'width':100}
-        definition2={'min':0,'max':10,'valname':'value', 'button_id':9077, 'width':200}
-        definitions = [definition1,definition2]
+        definition1={'min':1,'max':12,'valname':'length', 'button_id':1, 'width':300}
+        definition2={'min':2,'max':10,'valname':'length', 'button_id':9609, 'width':300}
+        definition3={'min':88,'max':93,'valname':'kg', 'button_id':3754, 'width':400}
+        definitions = [definition1,definition2,definition3]
         for definition in definitions:
             self.paint_line(definition,self.log2)
             self.width +=definition['width']
@@ -136,11 +141,12 @@ class AllInOneGraph(RelativeLayout):
                     y = self.offset_y+ ((endday-date1).days + 2) * self.day_height
                     #+ (float((endday-date1).seconds) / 60 / 60/24)
                     y = self.offset_y +  self.day_height * ( .5 + (float((endday-date1).seconds) / 60 / 60/24) + ((endday-date1).days + 1))
-                    print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
+                    #print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
 
                     with self.canvas:
                         Line(circle=(x,y,2),width=1)
-                    txt=str(entry[1]+": " + str(value))
+                    txt = str(round(float(str(value)),2))
+                    txt=str(entry[1]+": " + txt)
                     y=y+sp(12)
                     label_singleevent = Label(text=txt,font_size=sp(11),size_hint=(None,None),size=(0,0),pos=(x,y))
                     self.add_widget(label_singleevent)
@@ -151,15 +157,17 @@ class AllInOneGraph(RelativeLayout):
             #    Logger.error("Paint-line-log-error" + str(e) + str(entry))
 
         with self.canvas:
+            Color(0.7,1.0,1.0,0.9)
             Line(points=points)
-
+            Color(10,1.0,0.2,0.9)
+            Line(bezier=points)
 
     def paintAll(self):
         self.painted_width = self.width
         font_size=11
         self.canvas.clear()
         self.init_variables()
-        print self.n_seconds, "seconds; sec_w: ", self.second_width, self.day_height
+        print "paint all... ", self.n_seconds, "seconds; sec_w: ", self.second_width, self.day_height
 
         self.paint_hour_axis()
 
@@ -196,13 +204,13 @@ class AllInOneGraph(RelativeLayout):
                     label_extra_offset_y=0
                 col = self.rgb_from_string(str(entry[1]))
 
-                print "paint: x,y, color: ", col,(endday-date1).days, entry[1]
+                #print "paint: x,y, color: ", col,(endday-date1).days, entry[1]
 
                 if entry[2]=='singleevent':
                     #paint circle and label
                     x = self.offset_x + (date1.hour*3600+date1.minute*60) * self.second_width
                     y = self.offset_yd + (endday-date1).days * self.day_height
-                    print "paint singleevent: x,y",x,y, entry[16], " - entry 18: ", entry[18]
+                    #print "paint singleevent: x,y",x,y, entry[16], " - entry 18: ", entry[18]
                     with self.canvas:
                         #Line(rectangle=(x,y,day_height,day_height),width=3)
                         Color(col[0],col[1],col[2])
@@ -223,7 +231,7 @@ class AllInOneGraph(RelativeLayout):
                     elif date2.day ==date1.day + 1:
                         x2 = self.offset_x + (23*3600+59*60) * self.second_width
                         y2 = self.offset_yd+self.day_height/4 + (endday-date1).days * self.day_height
-                    print "paint startstop: x,y,x2,y2",x1,y1,x2,y2
+                    #print "paint startstop: x,y,x2,y2",x1,y1,x2,y2
                     with self.canvas.before:
                         Color(col[0],col[1],col[2],0.4)
                         #Line(rectangle=(x1,y1,x2-x1,y2-y1),width=2)
@@ -255,7 +263,7 @@ class AllInOneGraph(RelativeLayout):
                         x4 = self.offset_x + (24*60*60) * self.second_width
                         y4 = self.offset_yd+self.day_height/4 + (endday-date4).days * self.day_height
 
-                    print "paint 4times: x,y,x2,y2...",x1,x2,x3,x4,x1,"x||y: ", y1,y2,y3,y4,(endday-date1).days,(endday-date2).days,(endday-date3).days,(endday-date4).days, "||||", date1.day
+                    #print "paint 4times: x,y,x2,y2...",x1,x2,x3,x4,x1,"x||y: ", y1,y2,y3,y4,(endday-date1).days,(endday-date2).days,(endday-date3).days,(endday-date4).days, "||||", date1.day
                     with self.canvas.before:
                         Color(col[0],col[1],col[2],0.35)
                         #Line(rectangle=(x1,y1,x4-x1,y4-y1),width=2)
@@ -284,7 +292,6 @@ class AllInOneGraph(RelativeLayout):
 
 
     def on_touch_down(self,touch):
-        #if self.
         if self.collide_point(*touch.pos):
             print self.width, self.size, self.painted_width
             if self.painted_width <=100:
@@ -551,7 +558,7 @@ class EnterView2(BoxLayout):
             super(EnterView2, self).__init__(**kwargs)
 
             self.clear_widgets()
-            print "build EnterView --- dict:    ", self.dict
+            #print "build EnterView --- dict:    ", self.dict
 
             label_text= Label()
             if 'text' in self.dict:
@@ -594,7 +601,7 @@ class EnterView2(BoxLayout):
                 self.calendars.append(cal)
 
             for slid in self.dict['sliders']:
-                print '----------slid',slid
+                #print '----------slid',slid
                 slider_wid = CustomKnob() #CustomSlider()
                 slider_wid.value = float(slid['slider_def'])
                 slider_wid.ltext=slid['slider_name']
@@ -1033,7 +1040,7 @@ class ButtonView(StackLayout):
         #Clock.schedule_once(self.show_first_level,0.5)
 
     def show_first_level(self,instance=None):
-        Logger.info( "show_first_level 1 " + str(self.button_dict) + str(self.log2))
+        #Logger.info( "show_first_level 1 " + str(self.button_dict) + str(self.log2))
         self.categories = []
         self.clear_widgets()
         for button in self.button_dict:
@@ -1050,7 +1057,7 @@ class ButtonView(StackLayout):
         self.add_add_button(dict=self.button_dict)
 
     def show_button_dict(self,bdict,text):
-        print " ButtonView...show_button_dict",text
+        #print " ButtonView...show_button_dict",text
         self.clear_widgets()
         self.categories.append(text)
         categoryname_Label = Label()
@@ -1088,7 +1095,7 @@ class ButtonView(StackLayout):
         self.add_widget(av)
 
     def buttonpress(self,instance,value =None):
-        print "buttonpress..., ", instance, ";.. value: ", value, instance.dict, instance.text
+        #print "buttonpress..., ", instance, ";.. value: ", value, instance.dict, instance.text
 
         if type(instance.dict)==list:
             #-->submenu
@@ -1216,13 +1223,17 @@ class TestScrollableAllInOneGraph(RelativeLayout):
         #self.entry=kwargs['entry']
         super(TestScrollableAllInOneGraph, self).__init__(**kwargs)
         self.log2=kwargs['log2']
-        self.graph = ScrollableAllInOneGraph(log2=self.log2, size=(400,400),size_hint=(None,None))
+        try:
+            self.n_days = kwargs['n_days']
+        except:
+            self.n_days = 10
+        self.graph = ScrollableAllInOneGraph(log2=self.log2, size=(400,400),size_hint=(None,None),n_days=self.n_days)
         self.add_widget(self.graph)
 
         self.graph.paintAll()
 
     def paintAll(self):
-        self.graph.paintAll()
+        pass#self.graph.paintAll()
 
 class ScrollableAllInOneGraph(ScrollView):
     log2=None
@@ -1233,7 +1244,11 @@ class ScrollableAllInOneGraph(ScrollView):
         self.log2=kwargs['log2']
         self.scroll_x = 0.6
         self.scroll_y = 0
-        self.graph = AllInOneGraph(log2=self.log2, size=(sp(1000),sp(1400)),size_hint=(None,None))
+        try:
+            self.n_days = kwargs['n_days']
+        except:
+            self.n_days = 10
+        self.graph = AllInOneGraph(log2=self.log2, size=(sp(1000),sp(1400)),size_hint=(None,None),n_days=self.n_days)
         self.add_widget(self.graph)
 
         self.graph.paintAll()
@@ -1249,6 +1264,7 @@ class MainView(BoxLayout):
     log =None
     log2=None
     button_dic =None
+    n_days=8
 
     def __init__(self, **kwargs):
         #self.entry=kwargs['entry']
@@ -1286,7 +1302,7 @@ class MainView(BoxLayout):
         scrollview.scroll_y = 0
 
     def list_log2(self,instance=None):
-        print "### the whole log2: ", self.log2
+        #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
         scrollview= ScrollView()
         stacklayout = StackLayout(cols=1,spacing=5,size_hint_y =None)
@@ -1349,20 +1365,18 @@ class MainView(BoxLayout):
     def list_log3_rst(self,instance=None):
         try:
             from kivy.uix.rst import RstDocument
-            print "### the whole log2: ", self.log2
+            #print "### the whole log2: ", self.log2
             self.bv.clear_widgets()
-            rst_text="""
-    QuantifyMyself-Log
-    ==================
-
-    """
+            rst_text="""QuantifyMyself-Log
+====================
+"""
             i=0
             lastdate = datetime(2010,1,1,0,0)
             print "lastdate:  ",lastdate
             for entry in self.log2:
                 try:
                     date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
-                    print date1, date1-lastdate, (date1-lastdate).days
+                    #print date1, date1-lastdate, (date1-lastdate).days
                     if (abs((date1-lastdate).days) >= 1 ):
                         lastdate = datetime(date1.year,date1.month,date1.day)
                         rst_text += "\n \n" + date1.strftime("%A,    %Y-%m-%d") + "\n-------------------------\n \n"
@@ -1378,21 +1392,22 @@ class MainView(BoxLayout):
             Logger.error("couldnt show the reStructuredText-Log!  " + str(e))
 
     def paint_log(self,instance=None):
-        print "### the whole log2: ", self.log2
+        #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
-        relatlayout = AllInOneGraph(log2=self.log2)
+        relatlayout = AllInOneGraph(log2=self.log2,n_days=7)
         self.bv.add_widget(relatlayout )
         relatlayout.paintAll()
 
     def paint_log_scroll(self,instance=None):
-        print "### the whole log2: ", self.log2
+        #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
-        relatlayout = ScrollableAllInOneGraph(log2=self.log2,size_hint=(None,None),size=self.size)#(500,500))
+        self.n_days += 14
+        relatlayout = ScrollableAllInOneGraph(log2=self.log2,size_hint=(None,None),size=self.size, n_days=self.n_days )#(500,500))
         relatlayout.pos=self.bv.pos
         relatlayout.size=self.bv.size
         self.bv.add_widget(relatlayout )
         self.bv.do_layout()
-        relatlayout.paintAll()
+        #relatlayout.paintAll()
 
 
     def export_all(self):
