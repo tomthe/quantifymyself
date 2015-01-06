@@ -765,6 +765,7 @@ class EnterView2(BoxLayout):
         Logger.info("new entry: " + str(log2))
         return log2
 
+
 class NewEnterView2(BoxLayout):
     ti_button_text = ObjectProperty()
     cb_type_log = ObjectProperty()
@@ -1020,6 +1021,12 @@ class NewEnterView2(BoxLayout):
         self.parent_button_view.clear_widgets()
         self.parent_button_view.show_first_level()
 
+class ButtonOptionsView(BoxLayout):
+    '''Menu that shows options like: show entries from this button in the paint-log1 or 2... draw a graph...
+        saves these options in: definitions.json and (maybe) in button_dict
+
+    '''
+
 class ButtonView(StackLayout):
     button_dict =[]#[{'type':'submenu','text':'sleep','children':[{'type':'log','text':'sleep start'},{'type':'log','text':'sleep stop'}]} ]
     categories =[]
@@ -1257,7 +1264,13 @@ class ScrollableAllInOneGraph(ScrollView):
             self.n_days = kwargs['n_days']
         except:
             self.n_days = 10
-        self.graph = AllInOneGraph(log2=self.log2, size=(sp(1000),sp(1400)),size_hint=(None,None),n_days=self.n_days)
+        try:
+            size = (sp(kwargs['size_inside'][0]),sp(kwargs['size_inside'][1]))
+        except:
+            size = (sp(1000),sp(1400))
+
+        size = (sp(1000),sp(1400))
+        self.graph = AllInOneGraph(log2=self.log2, size=size,size_hint=(None,None),n_days=self.n_days)
         self.add_widget(self.graph)
 
         self.graph.paintAll()
@@ -1401,12 +1414,23 @@ class MainView(BoxLayout):
         except Exception, e:
             Logger.error("couldnt show the reStructuredText-Log!  " + str(e))
 
-    def paint_log(self,instance=None):
+    def paint_log_static(self,instance=None):
         #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
         relatlayout = AllInOneGraph(log2=self.log2,n_days=7)
         self.bv.add_widget(relatlayout )
         relatlayout.paintAll()
+
+    def paint_log(self,instance=None):
+        #print "### the whole log2: ", self.log2
+        self.bv.clear_widgets()
+        self.n_days = 4
+        relatlayout = ScrollableAllInOneGraph(log2=self.log2,size_hint=(None,None),size=self.size,size_inside=(900,500), n_days=self.n_days )#(500,500))
+        relatlayout.pos=self.bv.pos
+        relatlayout.size=self.bv.size
+        self.bv.add_widget(relatlayout )
+        self.bv.do_layout()
+        #relatlayout.paintAll()
 
     def paint_log_scroll(self,instance=None):
         #print "### the whole log2: ", self.log2
