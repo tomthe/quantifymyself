@@ -36,14 +36,8 @@ __version__ = "0.2.25"
 class AllInOneGraph(RelativeLayout):
     offset_x=sp(50)
     offset_y=sp(50)
-
-    #h=600
-    #w=600
     n_days=10
     n_seconds=24*60*60
-    #day_height=h/n_days
-    #offset_yd=offset_y + day_height/2
-    #second_width=float(w)/n_seconds
 
     def __init__(self, **kwargs):
         #self.entry=kwargs['entry']
@@ -51,9 +45,15 @@ class AllInOneGraph(RelativeLayout):
         super(AllInOneGraph, self).__init__(**kwargs)
         self.log2=kwargs['log2']
         try:
-            self.n_days = kwargs['n_days']
+            self.log_def=kwargs['log_def']
         except:
-            self.n_days = 10
+            try:
+                self.n_days = kwargs['n_days']
+            except:
+                self.n_days = 6
+            endday = datetime.now()
+            endday = datetime(endday.year,endday.month,endday.day)
+            self.log_def={'n_days':self.n_days, 'size':(1400,1200), 'endday':endday,'font_size':11}
         self.init_variables()
         #self.init_variables()
 
@@ -64,8 +64,11 @@ class AllInOneGraph(RelativeLayout):
         self.offset_yd=self.offset_y + self.day_height/2
         self.second_width=float(self.w)/self.n_seconds
 
-    def paint_hour_axis(self):
+        self.endday = self.log_def['endday']
+        self.n_days = self.log_def['n_days']
 
+        self.font_size=self.log_def['font_size']
+    def paint_hour_axis(self):
         hour0 = datetime(2010,1,1)
         for ihour in xrange(24):
             hour1 = hour0- timedelta(hours=ihour)
@@ -89,7 +92,7 @@ class AllInOneGraph(RelativeLayout):
 
 
     def get_value_from_log2_entry(self,entry,valname):
-        if valname=="length":
+        if valname=="_length":
             return self.entry2hours(entry)
         elif entry[13]==valname:
             return entry[14]
@@ -104,8 +107,8 @@ class AllInOneGraph(RelativeLayout):
 
 
     def test_paint_line(self):
-        definition1={'min':1,'max':12,'valname':'length', 'button_id':1, 'width':300}
-        definition2={'min':2,'max':10,'valname':'length', 'button_id':9609, 'width':300}
+        definition1={'min':1,'max':12,'valname':'_length', 'button_id':1, 'width':300}
+        definition2={'min':2,'max':10,'valname':'_length', 'button_id':9609, 'width':300}
         definition3={'min':88,'max':93,'valname':'kg', 'button_id':3754, 'width':400}
         definitions = [definition1,definition2,definition3]
         for definition in definitions:
@@ -114,7 +117,7 @@ class AllInOneGraph(RelativeLayout):
 
 
     def paint_line(self,description,log):
- #button_id 0, 1entryname,type 2,note 3,categories 4, timename1 5,time1 6,timename2,time2 8,timename3,time3,timename4,time4 12, valuename1 13,value1 14,valuename2 15,value2 16,valuename3,value3 18 ,valuename4,value4 20
+        #button_id 0, 1entryname,type 2,note 3,categories 4, timename1 5,time1 6,timename2,time2 8,timename3,time3,timename4,time4 12, valuename1 13,value1 14,valuename2 15,value2 16,valuename3,value3 18 ,valuename4,value4 20
 
         endday = datetime.now()
         endday = datetime(endday.year,endday.month,endday.day)
@@ -137,10 +140,7 @@ class AllInOneGraph(RelativeLayout):
                     value = self.get_value_from_log2_entry(entry,description['valname'])
                     x=offset_x + available_width / (max-min) * (value - min)
                     #determine y: from the date. like in paint_all:
-
-                    y = self.offset_y+ ((endday-date1).days + 2) * self.day_height
-                    #+ (float((endday-date1).seconds) / 60 / 60/24)
-                    y = self.offset_y +  self.day_height * ( .5 + (float((endday-date1).seconds) / 60 / 60/24) + ((endday-date1).days + 1))
+                    y = self.get_pos_y_from_date(date1,date1.hour/24)
                     #print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
 
                     with self.canvas:
@@ -162,7 +162,116 @@ class AllInOneGraph(RelativeLayout):
             Color(10,1.0,0.2,0.9)
             Line(bezier=points)
 
+    def paint_singleevent(self,entry,date,label_extra_offset_y):
+        #paint circle and label
+        x = self.get_pos_x_for_mainchart(date)
+        y = self.get_pos_y_from_date(date)#self.offset_yd + (endday-date1).days * self.day_height
+        #print "paint singleevent: x,y",x,y, entry[16], " - entry 18: ", entry[18]
+        col = self.rgb_from_string(str(entry[1]))
+        with self.canvas:
+            #Line(rectangle=(x,y,day_height,day_height),width=3)
+            Color(col[0],col[1],col[2])
+            Line(circle=(x,y,sp(10)),width=sp(3))
+        self.paint_event_label(date,entry,label_extra_offset_y)
+        #txt=str(entry[1]+": " + str(entry[14]) + " " + str(entry[16]) + " " + str(entry[18]) + str(entry[20]))
+        #y=y-(self.day_height/4)+label_extra_offset_y
+        #label_singleevent = Label(text=txt,font_size=sp(self.font_size),size_hint=(None,None),size=(0,0),pos=(x,y))
+        #self.add_widget(label_singleevent)
+
+    def paint_rectangle_for_two_datetimes(self,date1,date2,col):
+        x1 = self.get_pos_x_for_mainchart(date1)
+        y1 = self.get_pos_y_from_date(date1,relative_pos_on_day=0.25)
+        if date2.day == date1.day:
+            x2 = self.get_pos_x_for_mainchart(date2)#self.offset_x + (date2.hour*3600+date2.minute*60) * self.second_width
+            y2 = y1 + self.day_height/2# self.get_pos_y_from_date(date2,0.75)#self.offset_yd+self.day_height/4 + (self.endday-date2).days * self.day_height
+
+        #print "paint rectangle: ",(x1,y1),(x2,y2)
+        with self.canvas.before:
+            Color(col[0],col[1],col[2],0.4)
+            Rectangle(pos=(x1,y1),size=(x2-x1,y2-y1))
+
+    def paint_event_label(self,date1,entry,label_extra_offset_y):
+        x1 = self.get_pos_x_for_mainchart(date1)
+        y1 = self.get_pos_y_from_date(date1,relative_pos_on_day=0.0)
+        txt=str(entry[1]+": " + str(entry[14]) + " " + str(entry[16]) + " " + str(entry[18]) + str(entry[20]))
+        label_startstop = Label(text=txt, font_size=sp(12),size_hint=(None,None),size=(5,0),pos=(x1,y1+label_extra_offset_y))
+        label_extra_offset_y += sp(self.font_size)
+        self.add_widget(label_startstop)
+
+    def paint_startstop_event(self,entry,date1,label_extra_offset_y):
+        date2 = datetime.strptime(str(entry[8]),"%Y-%m-%d %H:%M")
+        #self.paint_rectangle_for_two_datetimes(date1,date2)
+        x1 = self.get_pos_x_for_mainchart(date1)
+        y1 = self.get_pos_y_from_date(date1)
+        col = self.rgb_from_string(str(entry[1]))
+        self.paint_rectangle_for_two_datetimes(date1,date2,col)
+        self.paint_event_label(date1,entry,label_extra_offset_y)
+
+
+    def paint_4times(self, entry,date1,label_extra_offset_y):
+        date2 = datetime.strptime(str(entry[8]), "%Y-%m-%d %H:%M")
+        date3 = datetime.strptime(str(entry[10]),"%Y-%m-%d %H:%M")
+        date4 = datetime.strptime(str(entry[12]),"%Y-%m-%d %H:%M")
+        #print "paint 4times: x,y,x2,y2...",x1,x2,x3,x4,x1,"x||y: ", y1,y2,y3,y4,(endday-date1).days,(endday-date2).days,(endday-date3).days,(endday-date4).days, "||||", date1.day
+
+        col = self.rgb_from_string(str(entry[1]))
+        self.paint_rectangle_for_two_datetimes(date1,date4,col)
+        self.paint_rectangle_for_two_datetimes(date2,date3,col)
+        #paint a rectangle from start to stop
+        self.paint_event_label(date1,entry,label_extra_offset_y)
+        #print str(entry[1]),sp(12),(x1,y1)
+
+
     def paintAll(self):
+        log_def = self.log_def
+        endday=self.endday
+        self.paint_hour_axis()
+        self.paint_date_axis()
+
+        #extra-offset: so that the labels dont overlap
+        label_extra_offset_y=0
+
+        for entry in self.log2:
+            try:
+                date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+                if (endday-date1).days >= self.n_days or (endday-date1).days < -1:
+                    #print "too long ago or in the future...check next entry... ", (endday-date1).days; entry
+                    continue
+
+                #extra-offset: so that the labels dont overlap
+                if label_extra_offset_y > self.day_height /2 + sp(self.font_size):
+                    label_extra_offset_y=0
+                else:
+                    label_extra_offset_y += sp(self.font_size)
+
+                if entry[2]=='singleevent':
+                    self.paint_singleevent(entry,date1,label_extra_offset_y)
+                elif entry[2]=='startstop':
+                    print entry
+                    self.paint_startstop_event(entry,date1,label_extra_offset_y)
+                elif entry[2]=='4times':
+                    print entry
+                    self.paint_4times(entry,date1,label_extra_offset_y)
+            except Exception,e:
+                print "Error painting event:  ", str(e)
+        self.test_paint_line()
+
+    def get_pos_y_from_date(self,date,relative_pos_on_day=0.5):
+        '''get the y-position on the widget from the date. realative_pos_on_day should be between 0..1'''
+        #timedelta.days gives an integer
+        return self.offset_yd + (self.endday - date).days * self.day_height + (relative_pos_on_day-0.5) *0.5
+
+    def get_pos_x_for_mainchart(self,date):
+        return self.offset_x + (date.hour*3600+date.minute*60) * self.second_width
+
+    def paint_date_axis(self):
+        for iday in xrange(self.n_days):
+            date1 = self.endday - timedelta(days=iday)
+            label_date =Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
+            label_date.pos = (20, self.get_pos_y_from_date(date1, 0.5))
+            self.add_widget(label_date)
+
+    def paintAll_orig(self):
         self.painted_width = self.width
         font_size=11
         self.canvas.clear()
@@ -292,10 +401,13 @@ class AllInOneGraph(RelativeLayout):
 
 
     def on_touch_down(self,touch):
-        if self.collide_point(*touch.pos):
-            print self.width, self.size, self.painted_width
-            if self.painted_width <=100:
-                self.paintAll()
+        pass
+        #if self.collide_point(*touch.pos):
+            #print self.width, self.size, self.painted_width
+        #    if self.painted_width <=100:
+        #        self.paintAll()
+        #return True
+
 
 
 class QuantButton(Widget):
@@ -599,6 +711,7 @@ class EnterView2(BoxLayout):
                     cal = DateSlider()
                 self.add_widget(cal)
                 self.calendars.append(cal)
+
 
             for slid in self.dict['sliders']:
                 #print '----------slid',slid
