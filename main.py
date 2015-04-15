@@ -173,10 +173,6 @@ class AllInOneGraph(RelativeLayout):
             Color(col[0],col[1],col[2])
             Line(circle=(x,y,sp(10)),width=sp(3))
         self.paint_event_label(date,entry,label_extra_offset_y)
-        #txt=str(entry[1]+": " + str(entry[14]) + " " + str(entry[16]) + " " + str(entry[18]) + str(entry[20]))
-        #y=y-(self.day_height/4)+label_extra_offset_y
-        #label_singleevent = Label(text=txt,font_size=sp(self.font_size),size_hint=(None,None),size=(0,0),pos=(x,y))
-        #self.add_widget(label_singleevent)
 
     def paint_rectangle_for_two_datetimes(self,date1,date2,col):
         x1 = self.get_pos_x_for_mainchart(date1)
@@ -185,10 +181,21 @@ class AllInOneGraph(RelativeLayout):
             x2 = self.get_pos_x_for_mainchart(date2)#self.offset_x + (date2.hour*3600+date2.minute*60) * self.second_width
             y2 = y1 + self.day_height/2# self.get_pos_y_from_date(date2,0.75)#self.offset_yd+self.day_height/4 + (self.endday-date2).days * self.day_height
 
-        #print "paint rectangle: ",(x1,y1),(x2,y2)
-        with self.canvas.before:
-            Color(col[0],col[1],col[2],0.4)
-            Rectangle(pos=(x1,y1),size=(x2-x1,y2-y1))
+            with self.canvas.before:
+                Color(col[0],col[1],col[2],0.4)
+                Rectangle(pos=(x1,y1),size=(x2-x1,y2-y1))
+
+    def paint_rectangle_for_several_days(self,date1,date2,col):
+        if date2.day == date1.day:
+            self.paint_rectangle_for_two_datetimes(date1,date2,col)
+        else:
+            date1x=date1
+            print "before-for ------ several_days...",date1,date2,range((date2-date1).days)
+            for iday in xrange((date2-date1).days):
+                print "|| several_days...",iday,date1,date2
+                date2x = datetime(date1x.year,date1x.month,date1x.day,23,58)
+                self.paint_rectangle_for_two_datetimes(date1x,date2x,col)
+                date1x = datetime(date1x.year,date1x.month,date1x.day+1, 0, 4)
 
     def paint_event_label(self,date1,entry,label_extra_offset_y):
         x1 = self.get_pos_x_for_mainchart(date1)
@@ -200,11 +207,10 @@ class AllInOneGraph(RelativeLayout):
 
     def paint_startstop_event(self,entry,date1,label_extra_offset_y):
         date2 = datetime.strptime(str(entry[8]),"%Y-%m-%d %H:%M")
-        #self.paint_rectangle_for_two_datetimes(date1,date2)
-        x1 = self.get_pos_x_for_mainchart(date1)
-        y1 = self.get_pos_y_from_date(date1)
+        #x1 = self.get_pos_x_for_mainchart(date1)
+        #y1 = self.get_pos_y_from_date(date1)
         col = self.rgb_from_string(str(entry[1]))
-        self.paint_rectangle_for_two_datetimes(date1,date2,col)
+        self.paint_rectangle_for_several_days(date1,date2,col)
         self.paint_event_label(date1,entry,label_extra_offset_y)
 
 
@@ -215,8 +221,10 @@ class AllInOneGraph(RelativeLayout):
         #print "paint 4times: x,y,x2,y2...",x1,x2,x3,x4,x1,"x||y: ", y1,y2,y3,y4,(endday-date1).days,(endday-date2).days,(endday-date3).days,(endday-date4).days, "||||", date1.day
 
         col = self.rgb_from_string(str(entry[1]))
-        self.paint_rectangle_for_two_datetimes(date1,date4,col)
-        self.paint_rectangle_for_two_datetimes(date2,date3,col)
+        #self.paint_rectangle_for_two_datetimes(date1,date4,col)
+        #self.paint_rectangle_for_two_datetimes(date2,date3,col)
+        self.paint_rectangle_for_several_days(date1,date4,col)
+        self.paint_rectangle_for_several_days(date2,date3,col)
         #paint a rectangle from start to stop
         self.paint_event_label(date1,entry,label_extra_offset_y)
         #print str(entry[1]),sp(12),(x1,y1)
@@ -247,10 +255,10 @@ class AllInOneGraph(RelativeLayout):
                 if entry[2]=='singleevent':
                     self.paint_singleevent(entry,date1,label_extra_offset_y)
                 elif entry[2]=='startstop':
-                    print entry
+                    #print entry
                     self.paint_startstop_event(entry,date1,label_extra_offset_y)
                 elif entry[2]=='4times':
-                    print entry
+                    #print entry
                     self.paint_4times(entry,date1,label_extra_offset_y)
             except Exception,e:
                 print "Error painting event:  ", str(e)
@@ -646,6 +654,18 @@ class DateSlider(BoxLayout):
 
     def get_datetime_string(self):
         return datetime(int(self.syear.value), int(self.smonth.value), int(self.sday.value), int(self.shour.value), int(self.sminute.value)).strftime("%Y-%m-%d %H:%M")
+
+
+class ButtonMenuView(BoxLayout):
+    '''Menu that pops up after a long-press on a tap-button.
+    offers possibillities to:
+    * change the button-dict -->what information can be stored...
+    * change the plot-dict -->
+    '''
+
+    def __init__(self, **kwargs):
+        pass
+
 
 class EnterView2(BoxLayout):
     #dict={}
