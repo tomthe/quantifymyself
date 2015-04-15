@@ -27,6 +27,7 @@ from datetime import datetime,timedelta
 
 from json import load, dump
 from kivy.uix.textinput import TextInput
+from traits.trait_types import self
 
 kivy.require('1.0.7')
 
@@ -1159,6 +1160,25 @@ class ButtonOptionsView(BoxLayout):
         saves these options in: definitions.json and (maybe) in button_dict
 
     '''
+    def __init__(self, **kwargs):
+        super(ButtonOptionsView, self).__init__(**kwargs)
+        self.button_dict=kwargs['button_dict']
+        self.log = kwargs['log']
+        self.log2 = kwargs['log2']
+        self.app = kwargs['app']
+        self.size= sp(500),sp(800)
+        #self.show_first_level()
+        self.build_view()
+        self.do_layout()
+
+    def build_view(self):
+        '''build the menu....'''
+
+        print "build view....."
+        #options:
+
+
+
 
 class ButtonView(StackLayout):
     button_dict =[]#[{'type':'submenu','text':'sleep','children':[{'type':'log','text':'sleep start'},{'type':'log','text':'sleep stop'}]} ]
@@ -1191,10 +1211,18 @@ class ButtonView(StackLayout):
             else:
                 bt = QuantButton(text= button['text'],dict=button,type='log')
             bt.bind(on_press=self.buttonpress)
+            bt.bind(on_long_press=self.edit_button)
             bt.size_hint = (None,None)
             bt.size = [self.width/2-5, self.height /6-5]
             self.add_widget(bt)
         self.add_add_button(dict=self.button_dict)
+
+    def edit_button(self,instance,value=None):
+        print "edit_button....",instance,value
+        self.clear_widgets()
+        bov = ButtonOptionsView(button_dict=self.button_dict,log=self.log,log2=self.log2,app=self.app)
+        self.add_widget(bov)
+
 
     def show_button_dict(self,bdict,text):
         #print " ButtonView...show_button_dict",text
