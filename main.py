@@ -837,8 +837,8 @@ class EnterView2(BoxLayout):
         log2_entry = self.log_entry_2_log2(new_log_entry)
         self.add_line_to_db_from_log2_entry(log2_entry)
 
-        self.parent_button_view.log.append(new_log_entry)
-        self.parent_button_view.log2.append(log2_entry)
+        #self.parent_button_view.log.append(new_log_entry)
+        #self.parent_button_view.log2.append(log2_entry)
         #print "log...  ", new_log_entry
         self.cancelf()
 
@@ -1244,16 +1244,12 @@ class ButtonView(StackLayout):
     button_dict =[]#[{'type':'submenu','text':'sleep','children':[{'type':'log','text':'sleep start'},{'type':'log','text':'sleep stop'}]} ]
     categories =[]
     app = None
-    log=[]
-    log2=[]
 
     def __init__(self, **kwargs):
         super(ButtonView, self).__init__(**kwargs)
         self.button_dict=kwargs['button_dict']
-        self.log = kwargs['log']
-        self.log2 = kwargs['log2']
         self.app = kwargs['app']
-        self.size= sp(500),sp(800)
+        self.size= sp(700),sp(700)
         #self.show_first_level()
         self.do_layout()
         self.show_first_level()
@@ -1517,11 +1513,9 @@ class MainView(BoxLayout):
         #self.entry=kwargs['entry']
         super(MainView, self).__init__(**kwargs)
         self.button_dict=kwargs['button_dict']
-        self.log = kwargs['log']
-        self.log2 = kwargs['log2']
         self.connlog = kwargs['connlog']
         self.app = kwargs['app']
-        self.bv = ButtonView(button_dict=self.button_dict,log=self.log,log2=self.log2,app=self.app,connlog=self.connlog)
+        self.bv = ButtonView(button_dict=self.button_dict,app=self.app,connlog=self.connlog)
         self.add_widget(self.bv)
 
 
@@ -1684,13 +1678,13 @@ class QuantifyApp(App):
     filename_logdict = 'log.json'
     filename_log2dict = 'log2.json'
     filename_log2csv = 'log2.csv'
+    filename_db = 'quantlog.db'
     connlog = None
 
     def build(self):
         self.load_files()
-        self.mainBL = MainView(button_dict=self.button_dict,log=self.log,log2=self.log2,app=self,connlog=self.connlog)
+        self.mainBL = MainView(button_dict=self.button_dict,app=self,connlog=self.connlog)
         EventLoop.window.bind(on_keyboard=self.hook_keyboard)
-
         return self.mainBL
 
     def load_files(self):
@@ -1700,39 +1694,36 @@ class QuantifyApp(App):
             Logger.error('failed to load button-db, e: ' + str(e))
             self.button_dict =[{"button_id": 1,"calendars": [ { "name": "start" },  { "name": "stop" }], "lasttime": "2014-09-04 16:09",                "note": True,                "sliders": [                    {                        "slider_def": "5.0",                        "slider_max": "10.0",                        "slider_min": "0.0",                        "slider_name": "productivity"                    }                ],                "status": "stopped",                "text": "Work start stop",                "type": "startstop"}]
         try:
-            self.log = self.loadJson(self.filename_logdict)
+            pass#self.log = self.loadJson(self.filename_logdict)
         except Exception,e:
             Logger.error('failed to load log-db, e: ' + str(e))
             self.log = [{"datetimes": [{ "datetime": "2014-08-17 19:33", "timename": "time1" },  {"datetime": "2014-08-22 19:33",                "timename": "time1"            }        ],        "entryname": "bullo",        "note": "sdfw",        "type": "log",        "values": [            {                "valname": "produktivit\u00e4t",                "value": 5.666666666666665            },            {                "valname": "value",                "value": 5.683593749999999            },            {                "valname": "spass",                "value": 3.0598958333333326            }        ]    }]
         try:
-            self.log2 = self.loadJson(self.filename_log2dict)
+            pass#self.log2 = self.loadJson(self.filename_log2dict)
         except Exception,e:
             Logger.error('failed to load log-db, e: ' + str(e))
             self.log2 = [[1,        "4zeiten",        "log",        "",        "test|",        "tim1",        "2014-09-06 14:16",        "start1",        "2014-09-04 14:16",        "start2",        "2014-09-04 14:16",        "stop1",        "2014-09-04 14:16",        "slo1",        1.5,        "slo2",        2.0,        "vi1",        1.4,        "ve2",        2.0    ]]
         try:
-            self.connlog = sqlite3.connect('example.db')
+            self.connlog = sqlite3.connect(self.filename_db)
+            self.connlog.execute('''CREATE TABLE IF NOT EXISTS log
+                       (ID INT PRIMARY KEY,
+                       button_id    INT,
+                       entryname    TEXT, type         TEXT,
+                       note         TEXT, categories TEXT, timename1 TEXT,
+                       time1 VARCHAR(20), timename2 TEXT, time2 VARCHAR(20),
+                       timename3 TEXT, time3 VARCHAR(20), timename4 TEXT,  time4 VARCHAR(20), valuename1 TEXT,
+                       value1 NUMERIC, valuename2 VARCHAR(21),value2 NUMERIC,valuename3 VARCHAR(21), value3 NUMERIC,
+                       valuename4 VARCHAR(21), value4 NUMERIC
+                       );''')
             print "squlito", self.connlog
         except Exception,e:
-            Logger.error('failed to load sqlite database, e: ' + str(e))
+            Logger.error('failed to load sqlite database, e: ' + str(e) + "creating datatable...")
             #self.log2 = [[1,        "4zeiten",        "log",        "",        "test|",        "tim1",        "2014-09-06 14:16",        "start1",        "2014-09-04 14:16",        "start2",        "2014-09-04 14:16",        "stop1",        "2014-09-04 14:16",        "slo1",        1.5,        "slo2",        2.0,        "vi1",        1.4,        "ve2",        2.0    ]]
-
-        self.connlog.execute('''CREATE TABLE IF NOT EXISTS log
-                   (ID INT PRIMARY KEY,
-                   button_id    INT,
-                   entryname    TEXT, type         TEXT,
-                   note         TEXT, categories TEXT, timename1 TEXT,
-                   time1 VARCHAR(20), timename2 TEXT, time2 VARCHAR(20),
-                   timename3 TEXT, time3 VARCHAR(20), timename4 TEXT,  time4 VARCHAR(20), valuename1 TEXT,
-                   value1 NUMERIC, valuename2 VARCHAR(21),value2 NUMERIC,valuename3 VARCHAR(21), value3 NUMERIC,
-                   valuename4 VARCHAR(21), value4 NUMERIC
-                   );''')
-        self.connlog.commit()
-        print " table created"
 
     def on_pause(self):
         self.writeJson(self.filename_buttondict, self.button_dict)
-        self.writeJson(self.filename_logdict, self.log)
-        self.writeJson(self.filename_log2dict, self.log2)
+        #self.writeJson(self.filename_logdict, self.log)
+        #self.writeJson(self.filename_log2dict, self.log2)
         self.connlog.commit()
         #self.log2csv(self.filename_log2csv)
         return True
@@ -1761,7 +1752,8 @@ class QuantifyApp(App):
     def export_all(self):
         try:
             try:
-                self.log2csv(self.filename_log2csv)
+                pass
+                #self.log2csv(self.filename_log2csv)
             except:
                 Logger.error("log2csv failed")
             Logger.info("export all..." + self.filename_buttondict + " ; " + self.filename_log2dict)
@@ -1778,12 +1770,12 @@ class QuantifyApp(App):
                 makedirs(export_dir)
 
             self.writeJson(export_dir + self.filename_buttondict, self.button_dict)
-            self.writeJson(export_dir + self.filename_logdict, self.log)
-            self.writeJson(export_dir + self.filename_log2dict, self.log2)
-            self.log2csv(export_dir + self.filename_log2csv)
+            #self.writeJson(export_dir + self.filename_logdict, self.log)
+            #self.writeJson(export_dir + self.filename_log2dict, self.log2)
+            #self.log2csv(export_dir + self.filename_log2csv)
 
             from shutil import copyfile
-            copyfile("quantlog.db",export_dir + "quantlog.db")
+            copyfile(self.filename_db,export_dir + self.filename_db)
         except Exception, e:
             Logger.error("export failed! "+ export_dir + ";   " + str(e))
 
@@ -1799,9 +1791,9 @@ class QuantifyApp(App):
             if not exists(export_dir):
                 Logger.error("import failed! No import-directory! "+ export_dir)
             else:
+                from shutil import copyfile
+                copyfile(export_dir + self.filename_db, self.filename_db)
                 self.mainBL.bv.button_dict = self.mainBL.bv.button_dict = self.button_dict = self.loadJson(export_dir + self.filename_buttondict)
-                self.mainBL.bv.log = self.mainBL.log = self.log = self.loadJson(export_dir + self.filename_logdict)
-                self.mainBL.bv.log2 =self.mainBL.log2 =  self.log2 = self.loadJson(export_dir + self.filename_log2dict)
                 self.mainBL.bv.show_first_level()
                 Logger.info("import successfull: " + export_dir + self.filename_buttondict + "; self.filename_log: "+ self.filename_logdict)
         except Exception, e:
