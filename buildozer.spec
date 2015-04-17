@@ -13,7 +13,7 @@ package.domain = de.tomthe
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas
+source.include_exts = py,png,jpg,kv,atlas, db
 
 # (list) Source files to exclude (let empty to not exclude anything)
 #source.exclude_exts = spec
@@ -32,7 +32,7 @@ version.filename = %(source.dir)s/main.py
 # version = 1.2.0
 
 # (list) Application requirements
-requirements = docutils, kivy
+requirements = kivy, sqlite3
 
 # (list) Garden requirements
 #garden_requirements =
@@ -55,7 +55,6 @@ fullscreen = 0
 #
 
 # (list) Permissions
-#android.permissions = INTERNET
 android.permissions = READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE
 
 # (int) Android API to use
