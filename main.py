@@ -27,14 +27,14 @@ from datetime import datetime,timedelta
 
 from json import load, dump
 from kivy.uix.textinput import TextInput
-from traits.trait_types import self
+#from traits.trait_types import self
 
 import sqlite3
 
 
 kivy.require('1.0.7')
 
-__version__ = "0.2.25"
+__version__ = "0.3.0"
 
 
 class AllInOneGraph(RelativeLayout):
@@ -1769,13 +1769,14 @@ class QuantifyApp(App):
                 from os import makedirs
                 makedirs(export_dir)
 
-            self.writeJson(export_dir + self.filename_buttondict, self.button_dict)
+            exportpathfile = export_dir + str(randint(0,99)) + self.filename_buttondict
+            self.writeJson(exportpathfile, self.button_dict)
             #self.writeJson(export_dir + self.filename_logdict, self.log)
             #self.writeJson(export_dir + self.filename_log2dict, self.log2)
             #self.log2csv(export_dir + self.filename_log2csv)
 
             from shutil import copyfile
-            copyfile(self.filename_db,export_dir + self.filename_db)
+            copyfile(self.filename_db,export_dir + str(randint(0,99)) + self.filename_db)
         except Exception, e:
             Logger.error("export failed! "+ export_dir + ";   " + str(e))
 
