@@ -74,13 +74,20 @@ class AllInOneGraph(RelativeLayout):
 
         self.font_size=self.log_def['font_size']
 
-    def paint_hour_axis(self):
+    def paint_hour_axis_orig(self):
         hour0 = datetime(2010,1,1)
         for ihour in xrange(24):
             hour1 = hour0- timedelta(hours=ihour)
             label_date =Label(text=hour1.strftime("%H"),font_size=sp(12),size_hint=(None,None),size=(0,0))
             label_date.pos = (self.offset_x + hour1.hour*3600*self.second_width, self.offset_y)
             self.add_widget(label_date)
+
+    def paint_hour_axis(self):
+        for ihour in xrange(24):
+            label_date =Label(text=str(ihour),font_size=sp(12),size_hint=(None,None),size=(0,0))
+            label_date.pos = (self.get_pos_x_for_mainchart_from_hour(ihour),self.offset_y)#(self.offset_x + ihour*3600*self.second_width, self.offset_y)
+            self.add_widget(label_date)
+
 
     def get_hours_from_2_dates(self,date1,date2):
         return (date2-date1).seconds / float(3600)
@@ -138,7 +145,7 @@ class AllInOneGraph(RelativeLayout):
         print "before paint_line....sql...."
         c = self.conlog.cursor()
         print "between paint_line....sql...."
-        sqltext = "SELECT * FROM log WHERE ((time1 between date('now', '-" + str(self.n_days) + " days') and date('now')) AND (button_id=" + str(description['button_id']) + "));"
+        sqltext = "SELECT * FROM log WHERE ((time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days')) AND (button_id=" + str(description['button_id']) + "));"
 
         c.execute(sqltext)
         print "before paint_line...after execute.sql....",sqltext
@@ -255,17 +262,12 @@ class AllInOneGraph(RelativeLayout):
 
         #extra-offset: so that the labels dont overlap
         label_extra_offset_y=0
-
         print "before paint_all...sql....1"
         c = self.conlog.cursor()
-        print "between paint_alle....sql....2"
-        sqltext = "SELECT * FROM log WHERE time1 between date('now', '-" + str(self.n_days) + " days') and date('now');"
-
-
+        sqltext = "SELECT * FROM log WHERE time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days');"
         c.execute(sqltext)
-        print "before paint_line...after execute.sql....",sqltext
+        #print "before paint_line...after execute.sql....",sqltext
         result = c.fetchall()
-
         for entry in result:
             #print "row:  ", entry
             entry = entry[1:]
@@ -296,10 +298,14 @@ class AllInOneGraph(RelativeLayout):
     def get_pos_y_from_date(self,date,relative_pos_on_day=0.5):
         '''get the y-position on the widget from the date. realative_pos_on_day should be between 0..1'''
         #timedelta.days gives an integer
-        return self.offset_yd + (self.endday - date).days * self.day_height + (relative_pos_on_day-0.5) *0.5
+        return self.offset_yd + self.day_height + (self.endday - date).days * self.day_height + (relative_pos_on_day-0.5) *0.5
 
     def get_pos_x_for_mainchart(self,date):
         return self.offset_x + (date.hour*3600+date.minute*60) * self.second_width
+
+
+    def get_pos_x_for_mainchart_from_hour(self,hour):
+        return self.offset_x + (hour*3600) * self.second_width
 
     def paint_date_axis(self):
         for iday in xrange(self.n_days):
