@@ -34,7 +34,7 @@ import sqlite3
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 
 
 class AllInOneGraph(RelativeLayout):
@@ -1346,30 +1346,12 @@ class ListEntry(BoxLayout):
         super(ListEntry, self).__init__(**kwargs)
         #print self.entry
 
-        for item,value in self.entry.viewitems():
+        for item in self. entry:
             try:
-                if type(value) is list:
-                    for listitem in value:
-                        bl = BoxLayout(orientation='vertical')
-                        #print "bobo - ", listitem
-                        try:
-                            for iteminside,valueinside in listitem.viewitems():
-                                lab = Label()
-                                lab.text = str(valueinside)
-                                bl.add_widget(lab)
-                        except:
-                            try:
-                                lab = Label()
-                                lab.text = str(listitem)
-                                bl.add_widget(lab)
-                            except:
-                                pass
-                        self.add_widget(bl)
-                else:
-                    lab = Label()
-                    lab.text = str(value)
-                    self.add_widget(lab)
-                    self.height = lab.texture_size[1]
+                lab = Label()
+                lab.text = str(item)
+                self.add_widget(lab)
+                self.height = lab.texture_size[1]
             except Exception,e:
                 Logger.error("error when showing the log...  " + str(e))
 
@@ -1533,9 +1515,14 @@ class MainView(BoxLayout):
         gridlayout = GridLayout(cols=1,spacing=5,size_hint_y =None)
 
         gridlayout.size_hint_y =None
-        for entry in self.log:
-            #print "###entry  ", entry
+        sqltext = "SELECT * FROM log WHERE time1 between date('now', '-4 days') and date('now', '+1 days') ORDER BY time1;"
+        c = self.connlog.cursor()
+        c.execute(sqltext)
+        result = c.fetchall()
+        for entry in result:
+            entry = entry[1:]
             if type(entry) is list:
+                print "is list??!?!", entry
                 pass
             else:
                 entryp = ListEntry(entry=entry)
@@ -1554,8 +1541,12 @@ class MainView(BoxLayout):
         stacklayout = StackLayout(cols=1,spacing=5,size_hint_y =None)
         i=0
         lastdate = datetime(2010,1,1,0,0)
-        #print "lastdate:  ",lastdate
-        for entry in self.log2:
+        sqltext = "SELECT * FROM log WHERE time1 between date('now', '-4 days') and date('now', '+1 days') ORDER BY time1;"
+        c = self.connlog.cursor()
+        c.execute(sqltext)
+        result = c.fetchall()
+        for entry in result:
+            entry = entry[1:]
             try:
                 date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
                 #print date1, date1-lastdate, (date1-lastdate).days
@@ -1619,7 +1610,12 @@ class MainView(BoxLayout):
             i=0
             lastdate = datetime(2010,1,1,0,0)
             #print "lastdate:  ",lastdate
-            for entry in self.log2[-80:]:
+            sqltext = "SELECT * FROM log WHERE time1 between date('now', '-4 days') and date('now', '+1 days') ORDER BY time1;"
+            c = self.connlog.cursor()
+            c.execute(sqltext)
+            result = c.fetchall()
+            for entry in result:
+                entry = entry[1:]
                 try:
                     date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
                     #print date1, date1-lastdate, (date1-lastdate).days
