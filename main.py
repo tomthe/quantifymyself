@@ -57,7 +57,7 @@ class AllInOneGraph(RelativeLayout):
             except:
                 self.n_days = 6
             endday = datetime.now()
-            endday = datetime(endday.year,endday.month,endday.day)
+            #endday = datetime(endday.year,endday.month,endday.day)
             self.log_def={'n_days':self.n_days, 'size':(1400,1200), 'endday':endday,'font_size':11}
         self.init_variables()
         #self.init_variables()
@@ -200,10 +200,10 @@ class AllInOneGraph(RelativeLayout):
 
     def paint_rectangle_for_two_datetimes(self,date1,date2,col):
         x1 = self.get_pos_x_for_mainchart(date1)
-        y1 = self.get_pos_y_from_date(date1,relative_pos_on_day=0.25)
+        y1 = self.get_pos_y_from_date(date1,relative_pos_on_day=0)
         if date2.day == date1.day:
             x2 = self.get_pos_x_for_mainchart(date2)#self.offset_x + (date2.hour*3600+date2.minute*60) * self.second_width
-            y2 = y1 + self.day_height/2# self.get_pos_y_from_date(date2,0.75)#self.offset_yd+self.day_height/4 + (self.endday-date2).days * self.day_height
+            y2 = y1 + self.day_height*0.87# self.get_pos_y_from_date(date2,0.75)#self.offset_yd+self.day_height/4 + (self.endday-date2).days * self.day_height
 
             with self.canvas.before:
                 Color(col[0],col[1],col[2],0.4)
@@ -298,7 +298,7 @@ class AllInOneGraph(RelativeLayout):
     def get_pos_y_from_date(self,date,relative_pos_on_day=0.5):
         '''get the y-position on the widget from the date. realative_pos_on_day should be between 0..1'''
         #timedelta.days gives an integer
-        return self.offset_yd + self.day_height + (self.endday - date).days * self.day_height + (relative_pos_on_day-0.5) *0.5
+        return self.offset_yd + self.day_height + (self.endday - date).days * self.day_height + (relative_pos_on_day-0.5) * self.day_height
 
     def get_pos_x_for_mainchart(self,date):
         return self.offset_x + (date.hour*3600+date.minute*60) * self.second_width
@@ -310,7 +310,7 @@ class AllInOneGraph(RelativeLayout):
     def paint_date_axis(self):
         for iday in xrange(self.n_days):
             date1 = self.endday - timedelta(days=iday)
-            label_date =Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
+            label_date = Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
             label_date.pos = (20, self.get_pos_y_from_date(date1, 0.5))
             self.add_widget(label_date)
 
@@ -940,7 +940,8 @@ class EnterView2(BoxLayout):
         print "add..line: ",entry
         print len(entry), "---", entry.insert(0,randint(0,999999))
         self.parent.app.connlog.execute("INSERT INTO log VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",entry)
-        self.parent.app.connlog.commit()
+        #Clock.schedule_once(lambda dt: self.parent.app.connlog.commit())
+        #self.parent.app.connlog.commit()
         #self.convert_db()
 
     def convert_db(self, log2=None):
@@ -1700,16 +1701,6 @@ class QuantifyApp(App):
             Logger.error('failed to load button-db, e: ' + str(e))
             self.button_dict =[{"button_id": 1,"calendars": [ { "name": "start" },  { "name": "stop" }], "lasttime": "2014-09-04 16:09",                "note": True,                "sliders": [                    {                        "slider_def": "5.0",                        "slider_max": "10.0",                        "slider_min": "0.0",                        "slider_name": "productivity"                    }                ],                "status": "stopped",                "text": "Work start stop",                "type": "startstop"}]
         try:
-            pass#self.log = self.loadJson(self.filename_logdict)
-        except Exception,e:
-            Logger.error('failed to load log-db, e: ' + str(e))
-            self.log = [{"datetimes": [{ "datetime": "2014-08-17 19:33", "timename": "time1" },  {"datetime": "2014-08-22 19:33",                "timename": "time1"            }        ],        "entryname": "bullo",        "note": "sdfw",        "type": "log",        "values": [            {                "valname": "produktivit\u00e4t",                "value": 5.666666666666665            },            {                "valname": "value",                "value": 5.683593749999999            },            {                "valname": "spass",                "value": 3.0598958333333326            }        ]    }]
-        try:
-            pass#self.log2 = self.loadJson(self.filename_log2dict)
-        except Exception,e:
-            Logger.error('failed to load log-db, e: ' + str(e))
-            self.log2 = [[1,        "4zeiten",        "log",        "",        "test|",        "tim1",        "2014-09-06 14:16",        "start1",        "2014-09-04 14:16",        "start2",        "2014-09-04 14:16",        "stop1",        "2014-09-04 14:16",        "slo1",        1.5,        "slo2",        2.0,        "vi1",        1.4,        "ve2",        2.0    ]]
-        try:
             self.connlog = sqlite3.connect(self.filename_db)
             self.connlog.execute('''CREATE TABLE IF NOT EXISTS log
                        (ID INT PRIMARY KEY,
@@ -1721,22 +1712,22 @@ class QuantifyApp(App):
                        value1 NUMERIC, valuename2 VARCHAR(21),value2 NUMERIC,valuename3 VARCHAR(21), value3 NUMERIC,
                        valuename4 VARCHAR(21), value4 NUMERIC
                        );''')
-            print "squlito", self.connlog
+            print "squlito", self.connlog, self.filename_db
         except Exception,e:
             Logger.error('failed to load sqlite database, e: ' + str(e) + "creating datatable...")
             #self.log2 = [[1,        "4zeiten",        "log",        "",        "test|",        "tim1",        "2014-09-06 14:16",        "start1",        "2014-09-04 14:16",        "start2",        "2014-09-04 14:16",        "stop1",        "2014-09-04 14:16",        "slo1",        1.5,        "slo2",        2.0,        "vi1",        1.4,        "ve2",        2.0    ]]
 
     def on_pause(self):
-        self.writeJson(self.filename_buttondict, self.button_dict)
-        #self.writeJson(self.filename_logdict, self.log)
-        #self.writeJson(self.filename_log2dict, self.log2)
-        self.connlog.commit()
-        #self.log2csv(self.filename_log2csv)
+        self.save()
         return True
+
+
 
     def save(self):
         Logger.info("save files...")
-        self.on_pause()
+        self.writeJson(self.filename_buttondict, self.button_dict)
+        self.connlog.commit()
+        #self.log2csv(self.filename_log2csv)
 
     def on_stop(self):
         self.on_pause()
@@ -1757,12 +1748,8 @@ class QuantifyApp(App):
 
     def export_all(self):
         try:
-            try:
-                pass
-                #self.log2csv(self.filename_log2csv)
-            except:
-                Logger.error("log2csv failed")
-            Logger.info("export all..." + self.filename_buttondict + " ; " + self.filename_log2dict)
+            self.save()
+            # get export-directory:
             export_dir = "/storage/sdcard1/quantifyMyself/"
             if platform =="android":
                 export_dir = "/storage/sdcard1/quantifyMyself/"
@@ -1775,14 +1762,15 @@ class QuantifyApp(App):
                 from os import makedirs
                 makedirs(export_dir)
 
-            exportpathfile = export_dir + str(randint(0,99)) + self.filename_buttondict
-            self.writeJson(exportpathfile, self.button_dict)
-            #self.writeJson(export_dir + self.filename_logdict, self.log)
-            #self.writeJson(export_dir + self.filename_log2dict, self.log2)
-            #self.log2csv(export_dir + self.filename_log2csv)
+            exportpathfile_button = export_dir + str(randint(0,999)) + self.filename_buttondict
+            exportpathfile_quantlog = export_dir + str(randint(0,999)) + self.filename_db
 
             from shutil import copyfile
-            copyfile(self.filename_db,export_dir + str(randint(0,99)) + self.filename_db)
+
+            copyfile(self.filename_db,exportpathfile_quantlog)
+            copyfile(self.filename_db,exportpathfile_button)
+            Logger.info("exported to: " + exportpathfile_button + "; " + exportpathfile_quantlog)
+
         except Exception, e:
             Logger.error("export failed! "+ export_dir + ";   " + str(e))
 
@@ -1799,10 +1787,16 @@ class QuantifyApp(App):
                 Logger.error("import failed! No import-directory! "+ export_dir)
             else:
                 from shutil import copyfile
-                copyfile(export_dir + self.filename_db, self.filename_db)
+                from glob import iglob
+                from os.path import getctime
+                latest_quantlog_filename = min(iglob(export_dir + '*' + self.filename_db), key=getctime)
+                latest_buttonlog_filename = min(iglob(export_dir + '*' + self.filename_buttondict), key=getctime)
+                copyfile(latest_quantlog_filename, self.filename_db)
+                copyfile(latest_buttonlog_filename,self.filename_buttondict)
+
                 self.mainBL.bv.button_dict = self.mainBL.bv.button_dict = self.button_dict = self.loadJson(export_dir + self.filename_buttondict)
                 self.mainBL.bv.show_first_level()
-                Logger.info("import successfull: " + export_dir + self.filename_buttondict + "; self.filename_log: "+ self.filename_logdict)
+                Logger.info("import successfull: " + latest_buttonlog_filename + "; imported quantlog: "+ latest_quantlog_filename)
         except Exception, e:
             Logger.error("import failed! "+ export_dir + ";   " + str(e))
 
