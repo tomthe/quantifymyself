@@ -47,7 +47,6 @@ class AllInOneGraph(RelativeLayout):
         #self.entry=kwargs['entry']
         self.size = (600,600)
         super(AllInOneGraph, self).__init__(**kwargs)
-        self.log2=kwargs['log2']
         self.conlog = kwargs['conlog']
         try:
             self.log_def=kwargs['log_def']
@@ -125,11 +124,11 @@ class AllInOneGraph(RelativeLayout):
         definition3={'min':88,'max':93,'valname':'kg', 'button_id':3754, 'width':400}
         definitions = [definition1,definition2,definition3]
         for definition in definitions:
-            self.paint_line(definition,self.log2)
+            self.paint_line(definition)
             self.width +=definition['width']
 
 
-    def paint_line(self,description,log):
+    def paint_line(self,description):
         #button_id 0, 1entryname,type 2,note 3,categories 4, timename1 5,time1 6,timename2,time2 8,timename3,time3,timename4,time4 12, valuename1 13,value1 14,valuename2 15,value2 16,valuename3,value3 18 ,valuename4,value4 20
 
         endday = datetime.now()
@@ -313,124 +312,6 @@ class AllInOneGraph(RelativeLayout):
             label_date = Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
             label_date.pos = (20, self.get_pos_y_from_date(date1, 0.5))
             self.add_widget(label_date)
-
-    def paintAll_orig(self):
-        self.painted_width = self.width
-        font_size=11
-        self.canvas.clear()
-        self.init_variables()
-        print "paint all... ", self.n_seconds, "seconds; sec_w: ", self.second_width, self.day_height
-
-        self.paint_hour_axis()
-
-        with self.canvas:
-            Color(0.8,0.3,0.1)
-            #Line(rectangle=(offset_x,offset_y,w,day_height),width=1)
-            #Line(rectangle=(offset_x,offset_y,w,h),width=1)
-            #Line(rectangle=(offset_x,offset_y+2*day_height,12*60*60*second_width,h),width=1)
-
-        endday = datetime.now()
-        endday = datetime(endday.year,endday.month,endday.day)
-        #position anhand der zeit bestimmen:
-        #y = (day - startday)* dayheight
-        #dayheight =
-        #x = secondofday-startsecond )*secondwidth + x_offset
-        for iday in xrange(self.n_days):
-            date1 = endday - timedelta(days=iday)
-            label_date =Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
-            label_date.pos = (20, self.offset_yd+ (endday-date1).days * self.day_height)
-            self.add_widget(label_date)
-
-        self.offset_yd +=self.day_height
-
-        label_extra_offset_y=0
-
-        for entry in self.log2:
-            try:
-                date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
-                if (endday-date1).days >= self.n_days or (endday-date1).days <-1:
-                    #print "too long ago or in the future...", (endday-date1).days; entry
-                    continue
-
-                if label_extra_offset_y >self.day_height /2 + sp(font_size):
-                    label_extra_offset_y=0
-                col = self.rgb_from_string(str(entry[1]))
-
-                #print "paint: x,y, color: ", col,(endday-date1).days, entry[1]
-
-                if entry[2]=='singleevent':
-                    #paint circle and label
-                    x = self.offset_x + (date1.hour*3600+date1.minute*60) * self.second_width
-                    y = self.offset_yd + (endday-date1).days * self.day_height
-                    #print "paint singleevent: x,y",x,y, entry[16], " - entry 18: ", entry[18]
-                    with self.canvas:
-                        #Line(rectangle=(x,y,day_height,day_height),width=3)
-                        Color(col[0],col[1],col[2])
-                        Line(circle=(x,y,10),width=3)
-                    txt=str(entry[1]+": " + str(entry[14]) + " " + str(entry[16]) + " " + str(entry[18]) + str(entry[20]))
-                    y=y-(self.day_height/4)+label_extra_offset_y
-                    label_singleevent = Label(text=txt,font_size=sp(font_size),size_hint=(None,None),size=(0,0),pos=(x,y))
-                    label_extra_offset_y += sp(font_size)
-                    self.add_widget(label_singleevent)
-                elif entry[2]=='startstop':
-                    date2 = datetime.strptime(str(entry[8]),"%Y-%m-%d %H:%M")
-                    x1 = self.offset_x + (date1.hour*3600+date1.minute*60) * self.second_width
-                    y1 = self.offset_yd-self.day_height/4 + (endday-date1).days * self.day_height
-
-                    if date2.day == date1.day:
-                        x2 = self.offset_x + (date2.hour*3600+date2.minute*60) * self.second_width
-                        y2 = self.offset_yd+self.day_height/4 + (endday-date2).days * self.day_height
-                    elif date2.day ==date1.day + 1:
-                        x2 = self.offset_x + (23*3600+59*60) * self.second_width
-                        y2 = self.offset_yd+self.day_height/4 + (endday-date1).days * self.day_height
-                    #print "paint startstop: x,y,x2,y2",x1,y1,x2,y2
-                    with self.canvas.before:
-                        Color(col[0],col[1],col[2],0.4)
-                        #Line(rectangle=(x1,y1,x2-x1,y2-y1),width=2)
-                        Rectangle(pos=(x1,y1),size=(x2-x1,y2-y1))
-                    #paint a rectangle from start to stop
-                    label_startstop = Label(text=str(entry[1]),font_size=sp(12),size_hint=(None,None),size=(x2-x1,0),pos=(x1,y1+label_extra_offset_y))
-                    label_extra_offset_y += sp(font_size)
-                    self.add_widget(label_startstop)
-                    #print str(entry[1]),sp(12),(x1,y1)
-
-
-                elif entry[2]=='4times':
-                    date2 = datetime.strptime(str(entry[8]), "%Y-%m-%d %H:%M")
-                    date3 = datetime.strptime(str(entry[10]),"%Y-%m-%d %H:%M")
-                    date4 = datetime.strptime(str(entry[12]),"%Y-%m-%d %H:%M")
-
-                    if date4.day == date1.day:
-                        x1 = self.offset_x + (date1.hour*3600+date1.minute*60) * self.second_width
-                        y1 = self.offset_yd-self.day_height/4 + (endday-date1).days * self.day_height
-                        x2 = self.offset_x + (date2.hour*3600+date2.minute*60) * self.second_width
-                        y2 = self.offset_yd+self.day_height/4 + (endday-date2).days * self.day_height
-                        x3 = self.offset_x + (date3.hour*3600+date3.minute*60) * self.second_width
-                        y3 = self.offset_yd-self.day_height/4 + (endday-date3).days * self.day_height
-                        x4 = self.offset_x + (date4.hour*3600+date4.minute*60) * self.second_width
-                        y4 = self.offset_yd+self.day_height/4 + (endday-date4).days * self.day_height
-                    elif date4.day == date1.day + 1:
-                        x3 = self.offset_x + (24*60*60) * self.second_width
-                        y3 = self.offset_yd-self.day_height/4 + (endday-date3).days * self.day_height
-                        x4 = self.offset_x + (24*60*60) * self.second_width
-                        y4 = self.offset_yd+self.day_height/4 + (endday-date4).days * self.day_height
-
-                    #print "paint 4times: x,y,x2,y2...",x1,x2,x3,x4,x1,"x||y: ", y1,y2,y3,y4,(endday-date1).days,(endday-date2).days,(endday-date3).days,(endday-date4).days, "||||", date1.day
-                    with self.canvas.before:
-                        Color(col[0],col[1],col[2],0.35)
-                        #Line(rectangle=(x1,y1,x4-x1,y4-y1),width=2)
-                        Rectangle(pos=(x1,y1),size=(x4-x1,y4-y1))
-                        Rectangle(pos=(x2,y2),size=(x3-x2,y3-y2))
-                    #paint a rectangle from start to stop
-                    label_startstop = Label(text=str(entry[1]),font_size=sp(font_size),size_hint=(None,None),size=(x2-x1,0),pos=(x1,y1+label_extra_offset_y))
-                    label_extra_offset_y += sp(font_size)
-                    self.add_widget(label_startstop)
-                    #print str(entry[1]),sp(12),(x1,y1)
-            except Exception, e:
-                Logger.error("Paint-log-error" + str(e) + str(entry))
-                print "errorororor"
-        self.test_paint_line()
-
 
     def rgb_from_string(self,string):
         try:
@@ -699,6 +580,8 @@ class ButtonMenuView(BoxLayout):
 
     def __init__(self, **kwargs):
         pass
+        print "kwargs:",kwargs
+        #title =
 
 
 class EnterView2(BoxLayout):
@@ -1230,10 +1113,9 @@ class ButtonOptionsView(BoxLayout):
     def __init__(self, **kwargs):
         super(ButtonOptionsView, self).__init__(**kwargs)
         self.button_dict=kwargs['button_dict']
-        self.log = kwargs['log']
-        self.log2 = kwargs['log2']
         self.app = kwargs['app']
         self.size= sp(500),sp(800)
+        print kwargs, "kwargs "
         #self.show_first_level()
         self.build_view()
         self.do_layout()
@@ -1283,7 +1165,7 @@ class ButtonView(StackLayout):
     def edit_button(self,instance,value=None):
         print "edit_button....",instance,value
         self.clear_widgets()
-        bov = ButtonOptionsView(button_dict=self.button_dict,log=self.log,log2=self.log2,app=self.app)
+        bov = ButtonOptionsView(button_dict=self.button_dict,app=self.app)
         self.add_widget(bov)
 
 
@@ -1367,10 +1249,10 @@ class ListEntry2(RelativeLayout):
         #print self.entry
         try:
             self.height=sp(75)
-            label_index = Label(text=str(self.listindex),size_hint=(0.04,0.5), pos_hint={'x':.0, 'y':.5})
-            self.add_widget(label_index)
+            #label_index = Label(text=str(self.listindex),size_hint=(0.04,0.5), pos_hint={'x':.0, 'y':.5})
+            #self.add_widget(label_index)
 
-            bl_date = BoxLayout(orientation='vertical',pos_hint={'x':.01, 'y':.0}, size_hint=(None,1),width=sp(100))
+            bl_date = BoxLayout(orientation='vertical',pos_hint={'x':.0, 'y':.0}, size_hint=(None,1),width=sp(40))
             try:
                 date1 = datetime.strptime(str(self.entry[6]),"%Y-%m-%d %H:%M")
                 label_date1 = Label(text=date1.strftime("%H:%M"))
@@ -1383,20 +1265,19 @@ class ListEntry2(RelativeLayout):
                 pass#Logger.error("Show Log- date-error" + str(e))
             self.add_widget(bl_date)
 
-
-            label_name = Label(text=str(self.entry[1]),pos_hint={'x':.15, 'top':1}, size_hint=(None,0.4), size=(100,20))
+            label_name = Label(text=str(self.entry[1]),pos_hint={'x':.25, 'top':1}, size_hint=(None,0.4), size=(100,20))
             self.add_widget(label_name)
-            label_categories = Label(text=str(self.entry[4]),pos_hint={'x':.15, 'top':0.75}, size_hint=(None,0.4), size=(100,20))
+            label_categories = Label(text=str(self.entry[4]),pos_hint={'x':.25, 'top':0.75}, size_hint=(None,0.4), size=(100,20))
             self.add_widget(label_categories)
 
-            bl_value = BoxLayout(orientation='vertical',pos_hint={'x':.55}, size_hint=(0.15,1))
+            bl_value = BoxLayout(orientation='vertical',pos_hint={'x':.7}, size_hint=(0.15,1))
             label_value1 = Label(text=str(self.entry[13]))
             label_value2 = Label(text=str(self.entry[15]))
             bl_value.add_widget(label_value1)
             bl_value.add_widget(label_value2)
             self.add_widget(bl_value)
 
-            bl_value = BoxLayout(orientation='vertical',pos_hint={'x':.75}, size_hint=(0.15,1))
+            bl_value = BoxLayout(orientation='vertical',pos_hint={'x':.89}, size_hint=(0.15,1))
             try:
                 label_value1 = Label(text=str(round(float(str(self.entry[14])),2)))
                 bl_value.add_widget(label_value1)
@@ -1413,7 +1294,7 @@ class ListEntry2(RelativeLayout):
                 self.height +=sp(14)
                 for row in self.entry[3].split("\n"):
                     self.height +=sp(14)
-                label_note = Label(text=self.entry[3],pos_hint={'x':0.1, 'y':0.4}, size_hint=(0.6,0.3),text_size=(300,None),color=(0.4,1,1,1))
+                label_note = Label(text=self.entry[3],pos_hint={'x':0.2, 'y':0.5}, size_hint=(0.6,0.3),text_size=(300,None),color=(0.4,1,1,1))
                 self.add_widget(label_note)
                 #print "label-size: ", label_note.size, label_note.texture_size,"self.x,y,w,h,pos,self...",(self.x,self.y,self.width,self.height), self.pos,self
 
@@ -1459,13 +1340,11 @@ class TestScrollableAllInOneGraph(RelativeLayout):
         pass#self.graph.paintAll()
 
 class ScrollableAllInOneGraph(ScrollView):
-    log2=None
     conlog=None
 
     def __init__(self, **kwargs):
         #self.entry=kwargs['entry']
         super(ScrollableAllInOneGraph, self).__init__(**kwargs)
-        self.log2=kwargs['log2']
         self.conlog=kwargs['conlog']
         self.scroll_x = 0.0
         self.scroll_y = 0
@@ -1479,7 +1358,7 @@ class ScrollableAllInOneGraph(ScrollView):
             size = (sp(1000),sp(1400))
 
         size = (sp(1000),sp(1400))
-        self.graph = AllInOneGraph(log2=self.log2,conlog=self.conlog, size=size,size_hint=(None,None),n_days=self.n_days)
+        self.graph = AllInOneGraph(conlog=self.conlog, size=size,size_hint=(None,None),n_days=self.n_days)
         self.add_widget(self.graph)
 
         self.graph.paintAll()
@@ -1637,7 +1516,7 @@ class MainView(BoxLayout):
     def paint_log_static(self,instance=None):
         #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
-        relatlayout = AllInOneGraph(log2=self.log2, conlog = self.connlog,n_days=7)
+        relatlayout = AllInOneGraph(conlog = self.connlog,n_days=7)
         self.bv.add_widget(relatlayout )
         relatlayout.paintAll()
 
@@ -1645,7 +1524,7 @@ class MainView(BoxLayout):
         #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
         self.n_days = 4
-        relatlayout = ScrollableAllInOneGraph(log2=self.log2, conlog = self.connlog,size_hint=(None,None),size=self.size,size_inside=(900,500), n_days=self.n_days )#(500,500))
+        relatlayout = ScrollableAllInOneGraph(conlog = self.connlog,size_hint=(None,None),size=self.size,size_inside=(900,500), n_days=self.n_days )#(500,500))
         relatlayout.pos=self.bv.pos
         relatlayout.size=self.bv.size
         self.bv.add_widget(relatlayout )
@@ -1656,7 +1535,7 @@ class MainView(BoxLayout):
         #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
         self.n_days += 14
-        relatlayout = ScrollableAllInOneGraph(log2=self.log2, conlog = self.connlog,size_hint=(None,None),size=self.size, n_days=self.n_days )#(500,500))
+        relatlayout = ScrollableAllInOneGraph(conlog = self.connlog,size_hint=(None,None),size=self.size, n_days=self.n_days )#(500,500))
         relatlayout.pos=self.bv.pos
         relatlayout.size=self.bv.size
         self.bv.add_widget(relatlayout )
@@ -1785,8 +1664,9 @@ class QuantifyApp(App):
                 from shutil import copyfile
                 from glob import iglob
                 from os.path import getctime
-                latest_quantlog_filename = min(iglob(export_dir + '*' + self.filename_db), key=getctime)
-                latest_buttonlog_filename = min(iglob(export_dir + '*' + self.filename_buttondict), key=getctime)
+                latest_quantlog_filename = max(iglob(export_dir + '*' + self.filename_db), key=getctime)
+                latest_buttonlog_filename = max(iglob(export_dir + '*' + self.filename_buttondict), key=getctime)
+                Logger.info("import from: " + latest_quantlog_filename + "  " + latest_buttonlog_filename )
                 copyfile(latest_quantlog_filename, self.filename_db)
                 copyfile(latest_buttonlog_filename,self.filename_buttondict)
 
