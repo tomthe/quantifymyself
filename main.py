@@ -153,6 +153,30 @@ class AllInOneGraph(RelativeLayout):
             self.paint_line_select(definition)
             self.width += definition['width']
 
+    def test_paint_line_sql(self):
+        try:
+            sqltext = "SELECT * FROM lines " \
+                      "WHERE 'prio' > 0;"
+            c = self.conlog.cursor()
+            c.execute(sqltext)
+            result = c.fetchall()
+            for linedef in result:
+                self.paint_line_select(linedef)
+        except:
+            sqltext = '''CREATE TABLE IF NOT EXISTS `lines` (
+                `lineID`	INTEGER PRIMARY KEY AUTOINCREMENT,
+                `min`	INTEGER,
+                `max`	INTEGER,
+                `width`	INTEGER,
+                `prio`	INTEGER,
+                `zeroifnot`	INTEGER,
+                `select_statement`	TEXT,
+                `group`	INTEGER,
+                `type`	TEXT,
+                `name`	TEXT);'''
+            c = self.conlog.cursor()
+            c.execute(sqltext)
+
 
     def paint_line_select(self,description):
         #button_id 0, 1entryname,type 2,note 3,categories 4, timename1 5,time1 6,timename2,time2 8,timename3,time3,timename4,time4 12, valuename1 13,value1 14,valuename2 15,value2 16,valuename3,value3 18 ,valuename4,value4 20
@@ -165,23 +189,17 @@ class AllInOneGraph(RelativeLayout):
         offset_y = self.offset_y
         available_width= int(description['width'])
         min,max = description['min'], description['max']
-        #for entry in self.log2:
-
-        print "before paint_line....sql...."
-        #self.conlog.row_factory = sqlite3.Row
         c = self.conlog.cursor()
         print "between paint_line....sql...."
-        sqltext = description['select_statement'] # "SELECT * FROM log WHERE ((time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days')) AND (button_id=" + str(description['button_id']) + "));"
-
+        sqltext = description['select_statement'].replace('n_days',str(self.n_days)) # "SELECT * FROM log WHERE ((time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days')) AND (button_id=" + str(description['button_id']) + "));"
+        print sqltext
         c.execute(sqltext)
-        print "before paint_line...after execute.sql....",sqltext
         result = c.fetchall()
-        #print "bla"
         last_date = datetime(2010, 1, 1)
-        print last_date
+        print last_date, result
         for entry in result:
                 #print "row:  ", entry
-            #try:
+            try:
                 #entry = entry[1:]
                 print "paint_line_select, entry: ", entry
                 print entry["value"]
@@ -195,6 +213,7 @@ class AllInOneGraph(RelativeLayout):
                                 points.extend((offset_x,self.get_pos_y_from_date(last_date,0.9)))
                 last_date = date1
                 value = entry['value'] # self.get_value_from_log2_entry(entry, entry['valuename1'])
+                print "minmax,value...:", min,max,value,entry
                 x=offset_x + available_width / (max-min) * (value - min)
                 #determine y: from the date. like in paint_all:
                 y = self.get_pos_y_from_date(date1,date1.hour/24.0)
@@ -210,15 +229,17 @@ class AllInOneGraph(RelativeLayout):
                 #points.append((x,y))
                 points.extend((x,y))
 
-            #except Exception, e:
-            #    Logger.error("Paint-line-log-error" + str(e) + str(entry))
+            except Exception, e:
+                Logger.error("Paint-line-log-error" + str(e) + str(entry))
 
+        self.width += description['width']
         print points, "points....<---"
         with self.canvas:
-            Color(0.7,1.0,1.0,0.9)
-            Line(points=points)
-            Color(10,1.0,0.2,0.9)
-            Line(bezier=points)
+            Color(0.7,1.0,1.0,1)
+            Line(points=points,width=2)
+            Color(10,1.0,0.2,1)
+            Line(bezier=points,width=2.0)#,bezier_precision=100,cap='None')
+        print "points2222....<---"
 
     def test_paint_line(self):
         definition1={'min':1,'max':12,'valname':'_length', 'button_id':1, 'width':300}
@@ -295,6 +316,7 @@ class AllInOneGraph(RelativeLayout):
         with self.canvas:
             #Line(rectangle=(x,y,day_height,day_height),width=3)
             Color(col[0],col[1],col[2])
+            #Rectangle(pos=(x,y),size=(sp(10),sp(10)))
             Line(circle=(x,y,sp(10)),width=sp(3))
         self.paint_event_label(date,entry,label_extra_offset_y)
 
@@ -398,7 +420,7 @@ class AllInOneGraph(RelativeLayout):
             except Exception,e:
                 print "Error painting event:  ", str(e)
         print "................................................------------------------------------------------------------------------------------------------------------------------------"
-        self.test_paint_line_select()
+        self.test_paint_line_sql()
 
     def get_pos_y_from_date(self,date,relative_pos_on_day=0.5):
         '''get the y-position on the widget from the date. realative_pos_on_day should be between 0..1'''
