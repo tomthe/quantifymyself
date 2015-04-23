@@ -783,7 +783,8 @@ class EnterView2(BoxLayout):
         if 'categories' in log1:
             for cat in log1['categories']:
                 categories += cat + "|"
-            categories = categories[:-1]
+            #categories = categories[:-1]
+            categories += log1['entryname']
         else:
             categories = "root"
         log2.append(categories)
@@ -1422,7 +1423,7 @@ class MainView(BoxLayout):
         gridlayout = GridLayout(cols=1,spacing=5,size_hint_y =None)
 
         gridlayout.size_hint_y =None
-        sqltext = "SELECT * FROM log WHERE time1 between date('now', '-4 days') and date('now', '+1 days') ORDER BY time1;"
+        sqltext = "SELECT * FROM log WHERE time1 between date('now', '-5 days') and date('now', '+1 days') ORDER BY time1;"
         c = self.connlog.cursor()
         c.execute(sqltext)
         result = c.fetchall()
@@ -1479,30 +1480,30 @@ class MainView(BoxLayout):
         #print entry
         #print "linex:   " + str(entry[1]).encode('utf8', 'replace') + " | " + str(entry[2]).encode('utf8', 'replace')
         #
-        txt += "" + str(entry[2]) + " "+ (" " * (max(0,14-(len(str(entry[2]))))))
-        txt += " " + str(entry[1]) + "     " + (" " * (max(0,14-(len(str(entry[1]))))))
-        txt += " " + str(entry[4]) + "     " + (" " * (max(0,14-(len(str(entry[1]))))))
-        txt += " " + str(entry[3]) + "     " + (" " * (max(0,14-(len(str(entry[1]))))))
+        txt += "" + str(entry['type']) + " "+ (" " * (max(0,14-(len(str(entry['type']))))))
+        txt += " " + str(entry['entryname']) + "     " + (" " * (max(0,14-(len(str(entry['entryname']))))))
+        txt += " " + str(entry[4+1]) + "     " + (" " * (max(0,14-(len(str(entry['entryname']))))))
+        txt += " " + str(entry[3+1]) + "     " + (" " * (max(0,14-(len(str(entry['entryname']))))))
         txt += "\n\n"
 
-        txt += "  " + str(entry[13]) + "  : "+ (" " * (max(0,14-(len(str(entry[13]))))))
-        txt += " " + str(entry[14]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[14]))))))
-        txt += "  " + str(entry[15]) + "  : "+ (" " * (max(0,14-(len(str(entry[15]))))))
-        txt += " " + str(entry[16]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[16]))))))
-        txt += "  " + str(entry[17]) + "  : "+ (" " * (max(0,14-(len(str(entry[17]))))))
-        txt += " " + str(entry[18]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[18]))))))
-        txt += "  " + str(entry[19]) + "  : "+ (" " * (max(0,14-(len(str(entry[19]))))))
-        txt += " " + str(entry[20]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[20]))))))
+        txt += "  " + str(entry[13+1]) + "  : "+ (" " * (max(0,14-(len(str(entry[13+1]))))))
+        txt += " " + str(entry[14+1]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[14+1]))))))
+        txt += "  " + str(entry[15+1]) + "  : "+ (" " * (max(0,14-(len(str(entry[15+1]))))))
+        txt += " " + str(entry[16+1]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[16+1]))))))
+        txt += "  " + str(entry[17+1]) + "  : "+ (" " * (max(0,14-(len(str(entry[17+1]))))))
+        txt += " " + str(entry[18+1]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[18+1]))))))
+        txt += "  " + str(entry[19+1]) + "  : "+ (" " * (max(0,14-(len(str(entry[19+1]))))))
+        txt += " " + str(entry[20+1]) + "  ;     "+ (" " * (max(0,14-(len(str(entry[20+1]))))))
 
         txt += "\n\n"
-        txt += "" + str(entry[5]) + ":  "+ (" " * (max(0,14-(len(str(entry[6]))))))
-        txt += " " + str(entry[6]) + " ;     "+ (" " * (max(0,14-(len(str(entry[7]))))))
-        txt += "" + str(entry[7]) + ": "+ (" " * (max(0,14-(len(str(entry[8]))))))
-        txt += " " + str(entry[8]) + " ;      "+ (" " * (max(0,14-(len(str(entry[9]))))))
-        txt += "" + str(entry[9]) + ": "+ (" " * (max(0,14-(len(str(entry[10]))))))
-        txt += " " + str(entry[10]) + " ;      "+ (" " * (max(0,14-(len(str(entry[11]))))))
-        txt += "" + str(entry[11]) + ": "+ (" " * (max(0,14-(len(str(entry[10]))))))
-        txt += " " + str(entry[12]) + " ;      "+ (" " * (max(0,14-(len(str(entry[11]))))))
+        txt += "" + str(entry[5+1]) + ":  "+ (" " * (max(0,14-(len(str(entry[6+1]))))))
+        txt += " " + str(entry[6+1]) + " ;     "+ (" " * (max(0,14-(len(str(entry[7+1]))))))
+        txt += "" + str(entry[7+1]) + ": "+ (" " * (max(0,14-(len(str(entry[8+1]))))))
+        txt += " " + str(entry[8+1]) + " ;      "+ (" " * (max(0,14-(len(str(entry[9+1]))))))
+        txt += "" + str(entry[9+1]) + ": "+ (" " * (max(0,14-(len(str(entry[10+1]))))))
+        txt += " " + str(entry[10+1]) + " ;      "+ (" " * (max(0,14-(len(str(entry[11+1]))))))
+        txt += "" + str(entry[11+1]) + ": "+ (" " * (max(0,14-(len(str(entry[10+1]))))))
+        txt += " " + str(entry[12+1]) + " ;      "+ (" " * (max(0,14-(len(str(entry[11+1]))))))
         txt += "\n\n-----------------------------\n\n"
         return txt
 
@@ -1522,9 +1523,8 @@ class MainView(BoxLayout):
             c.execute(sqltext)
             result = c.fetchall()
             for entry in result:
-                entry = entry[1:]
                 try:
-                    date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+                    date1 = datetime.strptime(str(entry['time1']),"%Y-%m-%d %H:%M")
                     #print date1, date1-lastdate, (date1-lastdate).days
                     if (abs((date1-lastdate).days) >= 1 ):
                         lastdate = datetime(date1.year,date1.month,date1.day)
