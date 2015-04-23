@@ -34,7 +34,7 @@ import sqlite3
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 
 
 class AllInOneGraph(RelativeLayout):
@@ -48,7 +48,6 @@ class AllInOneGraph(RelativeLayout):
         self.size = (600,600)
         super(AllInOneGraph, self).__init__(**kwargs)
         self.conlog = kwargs['conlog']
-        self.conlog.row_factory = sqlite3.Row
         try:
             self.log_def=kwargs['log_def']
         except:
@@ -325,24 +324,24 @@ class AllInOneGraph(RelativeLayout):
     def paint_event_label(self,date1,entry,label_extra_offset_y):
         x1 = self.get_pos_x_for_mainchart(date1)
         y1 = self.get_pos_y_from_date(date1,relative_pos_on_day=0.0)
-        txt=str(entry[1]+": " + str(entry[14]) + " " + str(entry[16]) + " " + str(entry[18]) + str(entry[20]))
+        txt=str(entry['entryname']+": " + str(entry['value1']) + " " + str(entry['value2']) + " " + str(entry['value3']) + str(entry['value4']))
         label_startstop = Label(text=txt, font_size=sp(12),size_hint=(None,None),size=(5,0),pos=(x1,y1+label_extra_offset_y))
         label_extra_offset_y += sp(self.font_size)
         self.add_widget(label_startstop)
 
     def paint_startstop_event(self,entry,date1,label_extra_offset_y):
-        date2 = datetime.strptime(str(entry[8]),"%Y-%m-%d %H:%M")
+        date2 = datetime.strptime(str(entry['time2']),"%Y-%m-%d %H:%M")
         #x1 = self.get_pos_x_for_mainchart(date1)
         #y1 = self.get_pos_y_from_date(date1)
-        col = self.rgb_from_string(str(entry[1]))
+        col = self.rgb_from_string(str(entry['entryname']))
         self.paint_rectangle_for_several_days(date1,date2,col)
         self.paint_event_label(date1,entry,label_extra_offset_y)
 
 
     def paint_4times(self, entry,date1,label_extra_offset_y):
-        date2 = datetime.strptime(str(entry[8]), "%Y-%m-%d %H:%M")
-        date3 = datetime.strptime(str(entry[10]),"%Y-%m-%d %H:%M")
-        date4 = datetime.strptime(str(entry[12]),"%Y-%m-%d %H:%M")
+        date2 = datetime.strptime(str(entry['time2']), "%Y-%m-%d %H:%M")
+        date3 = datetime.strptime(str(entry['time3']),"%Y-%m-%d %H:%M")
+        date4 = datetime.strptime(str(entry['time4']),"%Y-%m-%d %H:%M")
         #print "paint 4times: x,y,x2,y2...",x1,x2,x3,x4,x1,"x||y: ", y1,y2,y3,y4,(endday-date1).days,(endday-date2).days,(endday-date3).days,(endday-date4).days, "||||", date1.day
 
         col = self.rgb_from_string(str(entry[1]))
@@ -388,12 +387,12 @@ class AllInOneGraph(RelativeLayout):
                 else:
                     label_extra_offset_y += sp(self.font_size)
 
-                if entry[2]=='singleevent':
+                if entry['type']=='singleevent':
                     self.paint_singleevent(entry,date1,label_extra_offset_y)
-                elif entry[2]=='startstop':
+                elif entry['type']=='startstop':
                     #print entry
                     self.paint_startstop_event(entry,date1,label_extra_offset_y)
-                elif entry[2]=='4times':
+                elif entry['type']=='4times':
                     #print entry
                     self.paint_4times(entry,date1,label_extra_offset_y)
             except Exception,e:
@@ -404,7 +403,7 @@ class AllInOneGraph(RelativeLayout):
     def get_pos_y_from_date(self,date,relative_pos_on_day=0.5):
         '''get the y-position on the widget from the date. realative_pos_on_day should be between 0..1'''
         #timedelta.days gives an integer
-        return self.offset_yd + self.day_height + (self.endday - date).days * self.day_height + (relative_pos_on_day-0.5) * self.day_height
+        return self.offset_yd + self.day_height + (self.endday.date() - date.date()).days * self.day_height + (relative_pos_on_day-0.5) * self.day_height
 
     def get_pos_x_for_mainchart(self,date):
         return self.offset_x + (date.hour*3600+date.minute*60) * self.second_width
@@ -1335,7 +1334,7 @@ class ListEntry(BoxLayout):
         super(ListEntry, self).__init__(**kwargs)
         #print self.entry
 
-        for item in self. entry:
+        for item in self.entry:
             try:
                 lab = Label()
                 lab.text = str(item)
@@ -1361,47 +1360,47 @@ class ListEntry2(RelativeLayout):
 
             bl_date = BoxLayout(orientation='vertical',pos_hint={'x':.0, 'y':.0}, size_hint=(None,1),width=sp(40))
             try:
-                date1 = datetime.strptime(str(self.entry[6]),"%Y-%m-%d %H:%M")
+                date1 = datetime.strptime(str(self.entry['time1']),"%Y-%m-%d %H:%M")
                 label_date1 = Label(text=date1.strftime("%H:%M"))
                 bl_date.add_widget(label_date1)
-                date2 = datetime.strptime(str(self.entry[8]),"%Y-%m-%d %H:%M")
+                date2 = datetime.strptime(str(self.entry['time2']),"%Y-%m-%d %H:%M")
                 if (date2-date1).seconds > 1:
-                    label_date2 = Label(text=str(self.entry[8])[10:])
+                    label_date2 = Label(text=str(self.entry['time2'])[10:])
                     bl_date.add_widget(label_date2)
             except Exception, e:
                 pass#Logger.error("Show Log- date-error" + str(e))
             self.add_widget(bl_date)
 
-            label_name = Label(text=str(self.entry[1]),pos_hint={'x':.25, 'top':1}, size_hint=(None,0.4), size=(100,20))
+            label_name = Label(text=str(self.entry['entryname']),pos_hint={'x':.25, 'top':1}, size_hint=(None,0.4), size=(100,20))
             self.add_widget(label_name)
-            label_categories = Label(text=str(self.entry[4]),pos_hint={'x':.25, 'top':0.75}, size_hint=(None,0.4), size=(100,20))
+            label_categories = Label(text=str(self.entry['categories']),pos_hint={'x':.25, 'top':0.75}, size_hint=(None,0.4), size=(100,20))
             self.add_widget(label_categories)
 
             bl_value = BoxLayout(orientation='vertical',pos_hint={'x':.7}, size_hint=(0.15,1))
-            label_value1 = Label(text=str(self.entry[13]))
-            label_value2 = Label(text=str(self.entry[15]))
+            label_value1 = Label(text=str(self.entry['valuename1']))
+            label_value2 = Label(text=str(self.entry['valuename2']))
             bl_value.add_widget(label_value1)
             bl_value.add_widget(label_value2)
             self.add_widget(bl_value)
 
             bl_value = BoxLayout(orientation='vertical',pos_hint={'x':.89}, size_hint=(0.15,1))
             try:
-                label_value1 = Label(text=str(round(float(str(self.entry[14])),2)))
+                label_value1 = Label(text=str(round(float(str(self.entry['value1'])),2)))
                 bl_value.add_widget(label_value1)
             except:
                 pass
             try:
-                label_value2 = Label(text=str(round(float(str(self.entry[16])),2)))
+                label_value2 = Label(text=str(round(float(str(self.entry['value2'])),2)))
                 bl_value.add_widget(label_value2)
             except:
                 pass
             self.add_widget(bl_value)
 
-            if len(self.entry[3])>1:
+            if len(self.entry['note'])>1:
                 self.height +=sp(14)
-                for row in self.entry[3].split("\n"):
+                for row in self.entry['note'].split("\n"):
                     self.height +=sp(14)
-                label_note = Label(text=self.entry[3],pos_hint={'x':0.2, 'y':0.5}, size_hint=(0.6,0.3),text_size=(300,None),color=(0.4,1,1,1))
+                label_note = Label(text=self.entry['note'],pos_hint={'x':0.2, 'y':0.5}, size_hint=(0.6,0.3),text_size=(300,None),color=(0.4,1,1,1))
                 self.add_widget(label_note)
                 #print "label-size: ", label_note.size, label_note.texture_size,"self.x,y,w,h,pos,self...",(self.x,self.y,self.width,self.height), self.pos,self
 
@@ -1506,7 +1505,7 @@ class MainView(BoxLayout):
         c.execute(sqltext)
         result = c.fetchall()
         for entry in result:
-            entry = entry[1:]
+            #entry = entry[1:]
             if type(entry) is list:
                 print "is list??!?!", entry
                 pass
@@ -1532,9 +1531,9 @@ class MainView(BoxLayout):
         c.execute(sqltext)
         result = c.fetchall()
         for entry in result:
-            entry = entry[1:]
+            #entry = entry[1:]
             try:
-                date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
+                date1 = datetime.strptime(str(entry['time1']),"%Y-%m-%d %H:%M")
                 #print date1, date1-lastdate, (date1-lastdate).days
                 if (abs((date1-lastdate).days) >= 1 ):
                     lastdate = datetime(date1.year,date1.month,date1.day)
@@ -1695,6 +1694,7 @@ class QuantifyApp(App):
                        valuename4 VARCHAR(21), value4 NUMERIC
                        );''')
             print "squlito", self.connlog, self.filename_db
+            self.connlog.row_factory = sqlite3.Row
         except Exception,e:
             Logger.error('failed to load sqlite database, e: ' + str(e) + "creating datatable...")
             #self.log2 = [[1,        "4zeiten",        "log",        "",        "test|",        "tim1",        "2014-09-06 14:16",        "start1",        "2014-09-04 14:16",        "start2",        "2014-09-04 14:16",        "stop1",        "2014-09-04 14:16",        "slo1",        1.5,        "slo2",        2.0,        "vi1",        1.4,        "ve2",        2.0    ]]
