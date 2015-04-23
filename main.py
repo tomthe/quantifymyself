@@ -71,7 +71,7 @@ class AllInOneGraph(RelativeLayout):
         self.endday = self.log_def['endday']
         self.n_days = self.log_def['n_days']
 
-        self.font_size=self.log_def['font_size']
+        self.font_size = self.log_def['font_size']
 
     def paint_hour_axis_orig(self):
         hour0 = datetime(2010,1,1)
@@ -154,9 +154,9 @@ class AllInOneGraph(RelativeLayout):
         available_width= int(description['width'])
         min,max = description['min'], description['max']
         c = self.conlog.cursor()
-        print "between paint_line....sql...."
+        #print "between paint_line....sql...."
         sqltext = description['select_statement'].replace('n_days',str(self.n_days)) # "SELECT * FROM log WHERE ((time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days')) AND (button_id=" + str(description['button_id']) + "));"
-        print sqltext
+        #print sqltext
         c.execute(sqltext)
         result = c.fetchall()
         last_date = datetime(2010, 1, 1)
@@ -165,8 +165,8 @@ class AllInOneGraph(RelativeLayout):
                 #print "row:  ", entry
             try:
                 #entry = entry[1:]
-                print "paint_line_select, entry: ", entry
-                print entry["value"]
+                #print "paint_line_select, entry: ", entry
+                #print entry["value"]
                 date1 = datetime.strptime(str(entry['time1']), "%Y-%m-%d %H:%M")
                 if ((date1.day - last_date.day) > 1):
                     if (last_date != datetime(2010,1,1)):
@@ -177,14 +177,15 @@ class AllInOneGraph(RelativeLayout):
                                 points.extend((offset_x,self.get_pos_y_from_date(last_date,0.9)))
                 last_date = date1
                 value = entry['value'] # self.get_value_from_log2_entry(entry, entry['valuename1'])
-                print "minmax,value...:", min,max,value,entry
+                #print "minmax,value...:", min,max,value,entry
                 x=offset_x + available_width / (max-min) * (value - min)
                 #determine y: from the date. like in paint_all:
                 y = self.get_pos_y_from_date(date1,date1.hour/24.0)
                 print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
 
                 with self.canvas:
-                    Line(circle=(x,y,2),width=1)
+                    Rectangle(pos=(x,y),size=(sp(8),sp(8)))
+                    #Line(circle=(x,y,2),width=1)
                 txt = str(round(float(str(value)),2))
                 txt=str(entry["text"]+": " + txt)
                 y=y+sp(12)
@@ -197,12 +198,12 @@ class AllInOneGraph(RelativeLayout):
                 Logger.error("Paint-line-log-error" + str(e) + str(entry))
 
         self.width += description['width']
-        print points, "points....<---"
+        #print points, "points....<---"
         with self.canvas:
-            Color(0.7,1.0,1.0,1)
-            Line(points=points,width=2)
-            Color(10,1.0,0.2,1)
-            Line(bezier=points,width=2.0)#,bezier_precision=100,cap='None')
+            Color(0.7,1.0,1.0,2)
+            Line(points=points,width=1.6)
+            Color(10,1.0,0.2,2.2)
+            Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
         print "points2222....<---"
 
 
@@ -215,8 +216,8 @@ class AllInOneGraph(RelativeLayout):
         with self.canvas:
             #Line(rectangle=(x,y,day_height,day_height),width=3)
             Color(col[0],col[1],col[2])
-            #Rectangle(pos=(x,y),size=(sp(10),sp(10)))
-            Line(circle=(x,y,sp(10)),width=sp(3))
+            Rectangle(pos=(x,y),size=(sp(10),sp(10)))
+            #Line(circle=(x,y,sp(10)),width=sp(3))
         self.paint_event_label(date,entry,label_extra_offset_y)
 
     def paint_rectangle_for_two_datetimes(self,date1,date2,col):
