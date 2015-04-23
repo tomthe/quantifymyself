@@ -34,7 +34,7 @@ import sqlite3
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.4"
+__version__ = "0.3.5"
 
 
 class AllInOneGraph(RelativeLayout):
@@ -116,42 +116,6 @@ class AllInOneGraph(RelativeLayout):
             return entry[20]
         else:
             return entry[14]
-
-
-    def test_paint_line_select(self):
-
-        sql1 = "SELECT entryname, categories, time1, valuename1, value1, value1 as value, valuename1 AS text " \
-               "FROM log WHERE button_id = '3754' " \
-               "AND (time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+2 days'))" \
-                                                                        "ORDER BY datetime(time1);"
-        definition0={'min':88,'max':92.5,'select_statement':sql1,'valname':'_length', 'width':200, 'zeroifnot':False, 'priority': 6}
-
-        sql1 = "SELECT entryname, categories, time1, valuename1, value1, value1 as value, entryname AS text " \
-               "FROM log WHERE valuename1 = 'km' " \
-               "AND (time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+2 days'))" \
-                                                                        "ORDER BY datetime(time1);"
-        definition1={'min':2,'max':12,'select_statement':sql1,'valname':'_length', 'button_id':1, 'width':200, 'zeroifnot':True, 'priority': 3}
-        sql2 ="SELECT entryname, categories, time1, valuename1, value1, value1 as value, 'coffein' AS text " \
-               "FROM log WHERE categories LIKE 'Essen|Koffein%' " \
-               "AND (time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+2 days'))" \
-                "ORDER BY datetime(time1);"
-        definition2={'min':10,'max':50,'select_statement':sql2,'valname':'_length', 'button_id':1, 'width':300, 'zeroifnot':True, 'priority': 3}
-        sql3 ="SELECT entryname, categories, time1, valuename1, value1, SUM(value1) as value, entryname AS text " \
-                "FROM log WHERE categories LIKE 'Essen|Koffein%' " \
-                "AND (time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+2 days'))" \
-                "GROUP BY date(time1)" \
-                "ORDER BY datetime(time1);"
-        definition3 = {'min': 10, 'max': 70, 'select_statement':sql3,'valname':'_length', 'button_id':1, 'width':300, 'zeroifnot':True, 'priority': 3}
-
-        sql4 ="SELECT 44, entryname, categories, time1, datetime(time2) - datetime(time1) as timediff,(strftime('%s',time2) - strftime('%s',time1))/3600.0 as value, valuename1, value1,  entryname AS text " \
-               "FROM log WHERE categories LIKE 'Sport%' " \
-               "AND (time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+2 days'))" \
-               "ORDER BY datetime(time1);"
-        definition4={'min':0,'max':4,'select_statement':sql4,'valname':'_length', 'button_id':1, 'width':300, 'zeroifnot':True, 'priority': 3}
-        definitions = [definition0,definition1,definition2,definition3,definition4]
-        for definition in definitions:
-            self.paint_line_select(definition)
-            self.width += definition['width']
 
     def test_paint_line_sql(self):
         try:
@@ -241,71 +205,6 @@ class AllInOneGraph(RelativeLayout):
             Line(bezier=points,width=2.0)#,bezier_precision=100,cap='None')
         print "points2222....<---"
 
-    def test_paint_line(self):
-        definition1={'min':1,'max':12,'valname':'_length', 'button_id':1, 'width':300}
-        definition2={'min':2,'max':10,'valname':'_length', 'button_id':9609, 'width':300}
-        definition3={'min':88,'max':93,'valname':'kg', 'button_id':3754, 'width':400}
-        definitions = [definition1,definition2,definition3]
-        for definition in definitions:
-            self.paint_line(definition)
-            self.width +=definition['width']
-
-    def paint_line(self,description):
-        #button_id 0, 1entryname,type 2,note 3,categories 4, timename1 5,time1 6,timename2,time2 8,timename3,time3,timename4,time4 12, valuename1 13,value1 14,valuename2 15,value2 16,valuename3,value3 18 ,valuename4,value4 20
-
-        endday = datetime.now()
-        endday = datetime(endday.year,endday.month,endday.day)
-
-        points = []
-        offset_x = self.width
-        offset_y = self.offset_y
-        available_width= int(description['width'])
-        min,max = description['min'], description['max']
-        #for entry in self.log2:
-
-        print "before paint_line....sql...."
-        c = self.conlog.cursor()
-        print "between paint_line....sql...."
-        sqltext = "SELECT * FROM log WHERE ((time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days')) AND (button_id=" + str(description['button_id']) + "));"
-
-        c.execute(sqltext)
-        print "before paint_line...after execute.sql....",sqltext
-        result = c.fetchall()
-        #print "bla"
-        for entry in result:
-                #print "row:  ", entry
-            #try:
-                entry = entry[1:]
-                date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
-
-                if entry[0]==description['button_id']:
-                    #this is a suiting entry
-                    #determine x: offset_x + scaled value;
-                    #scaled_value...: availible_width / (max-min) * (val - min)
-                    value = self.get_value_from_log2_entry(entry,description['valname'])
-                    x=offset_x + available_width / (max-min) * (value - min)
-                    #determine y: from the date. like in paint_all:
-                    y = self.get_pos_y_from_date(date1,date1.hour/24)
-                    #print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
-
-                    with self.canvas:
-                        Line(circle=(x,y,2),width=1)
-                    txt = str(round(float(str(value)),2))
-                    txt=str(entry[1]+": " + txt)
-                    y=y+sp(12)
-                    label_singleevent = Label(text=txt,font_size=sp(11),size_hint=(None,None),size=(0,0),pos=(x,y))
-                    self.add_widget(label_singleevent)
-                    #points.append((x,y))
-                    points.extend((x,y))
-
-            #except Exception, e:
-            #    Logger.error("Paint-line-log-error" + str(e) + str(entry))
-
-        with self.canvas:
-            Color(0.7,1.0,1.0,0.9)
-            Line(points=points)
-            Color(10,1.0,0.2,0.9)
-            Line(bezier=points)
 
     def paint_singleevent(self,entry,date,label_extra_offset_y):
         #paint circle and label
