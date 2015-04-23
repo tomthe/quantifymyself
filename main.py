@@ -160,7 +160,7 @@ class AllInOneGraph(RelativeLayout):
         c.execute(sqltext)
         result = c.fetchall()
         last_date = datetime(2010, 1, 1)
-        print last_date, result
+        #print last_date, result
         for entry in result:
                 #print "row:  ", entry
             try:
@@ -168,9 +168,9 @@ class AllInOneGraph(RelativeLayout):
                 #print "paint_line_select, entry: ", entry
                 #print entry["value"]
                 date1 = datetime.strptime(str(entry['time1']), "%Y-%m-%d %H:%M")
-                if ((date1.day - last_date.day) > 1):
+                if ((date1 - last_date).days > 1):
                     if (last_date != datetime(2010,1,1)):
-                        print "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP",(date1.day - last_date.day)
+                        #print "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP",(date1 - last_date).days
                         if description['zeroifnot']:
                             for igapday in xrange((date1.day - last_date.day)-1):
                                 last_date = last_date + timedelta(days=1)
@@ -181,7 +181,7 @@ class AllInOneGraph(RelativeLayout):
                 x=offset_x + available_width / (max-min) * (value - min)
                 #determine y: from the date. like in paint_all:
                 y = self.get_pos_y_from_date(date1,date1.hour/24.0)
-                print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
+                #print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
 
                 with self.canvas:
                     Rectangle(pos=(x,y),size=(sp(8),sp(8)))
@@ -236,9 +236,9 @@ class AllInOneGraph(RelativeLayout):
             self.paint_rectangle_for_two_datetimes(date1,date2,col)
         else:
             date1x=date1
-            print "before-for ------ several_days...",date1,date2,range((date2-date1).days)
+            #print "before-for ------ several_days...",date1,date2,range((date2-date1).days)
             for iday in xrange((date2-date1).days):
-                print "|| several_days...",iday,date1,date2
+                #print "|| several_days...",iday,date1,date2
                 date2x = datetime(date1x.year,date1x.month,date1x.day,23,58)
                 self.paint_rectangle_for_two_datetimes(date1x,date2x,col)
                 date1x = datetime(date1x.year,date1x.month,date1x.day+1, 0, 4)
@@ -295,9 +295,9 @@ class AllInOneGraph(RelativeLayout):
             #entry = entry[1:]
             try:
                 #date1 = datetime.strptime(str(entry[6]),"%Y-%m-%d %H:%M")
-                print "oentry: ", entry
+                #print "oentry: ", entry
                 date1 = datetime.strptime(entry["time1"],"%Y-%m-%d %H:%M")
-                print "date1: ", date1
+                #print "date1: ", date1
 
                 if (endday-date1).days >= self.n_days or (endday-date1).days < -1:
                     #print "too long ago or in the future...check next entry... ", (endday-date1).days; entry
