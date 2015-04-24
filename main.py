@@ -197,7 +197,8 @@ class AllInOneGraph(RelativeLayout):
 
             except Exception, e:
                 Logger.error("Paint-line-log-error" + str(e) + str(entry))
-
+        label_linename = Label(text=description['name'],font_size=sp(13),size_hint=(None,None),size=(0,0),pos=(x,y-sp(24)))
+        self.add_widget(label_linename)
         self.width += description['width']
         #print points, "points....<---"
         with self.canvas:
