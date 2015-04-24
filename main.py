@@ -138,7 +138,9 @@ class AllInOneGraph(RelativeLayout):
                 `select_statement`	TEXT,
                 `group`	INTEGER,
                 `type`	TEXT,
-                `name`	TEXT);'''
+                `name`	TEXT,
+                `visible` INTEGER DEFAULT 1
+                );'''
             c = self.conlog.cursor()
             c.execute(sqltext)
 
@@ -1440,6 +1442,32 @@ class MainView(BoxLayout):
                 gridlayout.add_widget(entryp)
                 gridlayout.height += entryp.height
                 #print "hhh: ", entryp.height, gridlayout.height
+        scrollview.add_widget(gridlayout)
+        self.bv.add_widget(scrollview )
+        scrollview.scroll_y = 0
+
+    def list_log_txt(self,instance=None):
+        #print "### the whole log: ", self.log
+        self.bv.clear_widgets()
+        scrollview= ScrollView()
+        gridlayout = GridLayout(cols=1,spacing=5,size_hint_y =None)
+
+        gridlayout.size_hint_y =None
+        sqltext = "SELECT categories, entryname, note, valuename1,value1, valuename2,value2, valuename3,value3, valuename4,value4,timename1,time1,timename2,time2,timename3,time3,timename4,time4 FROM log WHERE time1 between date('now', '-14 days') and date('now', '+1 days') ORDER BY time1;"
+        c = self.connlog.cursor()
+        c.execute(sqltext)
+        result = c.fetchall()
+        for entry in result:
+            txt = ""
+            print entry
+            for col in entry:
+                print col
+                txt += str(col) + "  "
+            entryp = Label(text=txt,color=(0.8,1,0.8,1),font_size=sp(16),size_hint=(1,None))
+            entryp.height = sp(20)
+            gridlayout.add_widget(entryp)
+            gridlayout.height += entryp.height + sp(5)
+            #print "hhh: ", entryp.height, gridlayout.height
         scrollview.add_widget(gridlayout)
         self.bv.add_widget(scrollview )
         scrollview.scroll_y = 0
