@@ -34,7 +34,7 @@ import sqlite3
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 
 class AllInOneGraph(RelativeLayout):
@@ -125,7 +125,8 @@ class AllInOneGraph(RelativeLayout):
             c.execute(sqltext)
             result = c.fetchall()
             for linedef in result:
-                self.paint_line_select(linedef)
+                if linedef['visible'] != 0:
+                    self.paint_line_select(linedef)
         except:
             sqltext = '''CREATE TABLE IF NOT EXISTS `lines` (
                 `lineID`	INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -187,7 +188,7 @@ class AllInOneGraph(RelativeLayout):
                     Rectangle(pos=(x,y),size=(sp(8),sp(8)))
                     #Line(circle=(x,y,2),width=1)
                 txt = str(round(float(str(value)),2))
-                txt=str(entry["text"]+": " + txt)
+                txt=str(entry["text"])+": " + txt
                 y=y+sp(12)
                 label_singleevent = Label(text=txt,font_size=sp(11),size_hint=(None,None),size=(0,0),pos=(x,y))
                 self.add_widget(label_singleevent)
@@ -203,7 +204,7 @@ class AllInOneGraph(RelativeLayout):
             Color(0.7,1.0,1.0,2)
             Line(points=points,width=1.6)
             Color(10,1.0,0.2,2.2)
-            Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
+            #Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
         print "points2222....<---"
 
 
@@ -266,7 +267,7 @@ class AllInOneGraph(RelativeLayout):
         date4 = datetime.strptime(str(entry['time4']),"%Y-%m-%d %H:%M")
         #print "paint 4times: x,y,x2,y2...",x1,x2,x3,x4,x1,"x||y: ", y1,y2,y3,y4,(endday-date1).days,(endday-date2).days,(endday-date3).days,(endday-date4).days, "||||", date1.day
 
-        col = self.rgb_from_string(str(entry[1]))
+        col = self.rgb_from_string(str(entry['entryname']))
         #self.paint_rectangle_for_two_datetimes(date1,date4,col)
         #self.paint_rectangle_for_two_datetimes(date2,date3,col)
         self.paint_rectangle_for_several_days(date1,date4,col)
@@ -1666,11 +1667,12 @@ class QuantifyApp(App):
                 from os import makedirs
                 makedirs(export_dir)
 
-            exportpathfile_button = export_dir + str(randint(0,999)) + self.filename_buttondict
-            exportpathfile_quantlog = export_dir + str(randint(0,999)) + self.filename_db
+            random_number = str(randint(0,999))
+            exportpathfile_button = export_dir + random_number + self.filename_buttondict
+            exportpathfile_quantlog = export_dir + random_number + self.filename_db
+            Logger.info("export-filenames: " + exportpathfile_button + "; " + exportpathfile_quantlog)
 
             from shutil import copyfile
-
             copyfile(self.filename_db,exportpathfile_quantlog)
             copyfile(self.filename_db,exportpathfile_button)
             Logger.info("exported to: " + exportpathfile_button + "; " + exportpathfile_quantlog)
