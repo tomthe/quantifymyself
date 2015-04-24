@@ -12,6 +12,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.scatterlayout import ScatterLayout
 from kivy.properties import ListProperty, StringProperty, ObjectProperty, NumericProperty,AliasProperty
 from kivy.logger import Logger
 from kivy.base import EventLoop
@@ -34,10 +35,10 @@ import sqlite3
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.6"
+__version__ = "0.3.7"
 
 
-class AllInOneGraph(RelativeLayout):
+class AllInOneGraph(ScatterLayout):
     offset_x=sp(50)
     offset_y=sp(50)
     n_days=10
@@ -120,7 +121,8 @@ class AllInOneGraph(RelativeLayout):
     def test_paint_line_sql(self):
         try:
             sqltext = "SELECT * FROM lines " \
-                      "WHERE 'prio' > 0;"
+                      "WHERE prio > 0 " \
+                      "ORDER BY prio DESC;"
             c = self.conlog.cursor()
             c.execute(sqltext)
             result = c.fetchall()
@@ -190,7 +192,7 @@ class AllInOneGraph(RelativeLayout):
                     Rectangle(pos=(x,y),size=(sp(8),sp(8)))
                     #Line(circle=(x,y,2),width=1)
                 txt = str(round(float(str(value)),2))
-                txt=str(entry["text"])+": " + txt
+                txt = str(entry["text"])+":     " + txt
                 y=y+sp(12)
                 label_singleevent = Label(text=txt,font_size=sp(11),size_hint=(None,None),size=(0,0),pos=(x,y))
                 self.add_widget(label_singleevent)
@@ -199,16 +201,15 @@ class AllInOneGraph(RelativeLayout):
 
             except Exception, e:
                 Logger.error("Paint-line-log-error" + str(e) + str(entry))
-        label_linename = Label(text=description['name'],font_size=sp(13),size_hint=(None,None),size=(0,0),pos=(x,y-sp(24)))
+        label_linename = Label(text=description['name'],font_size=sp(16),size_hint=(None,None),size=(0,0),pos=(x,y-sp(26)))
         self.add_widget(label_linename)
         self.width += description['width']
         #print points, "points....<---"
         with self.canvas:
-            Color(0.7,1.0,1.0,2)
+            Color(0.2,0.5,1.0,2)
             Line(points=points,width=1.6)
             Color(10,1.0,0.2,2.2)
             #Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
-        print "points2222....<---"
 
 
     def paint_singleevent(self,entry,date,label_extra_offset_y):
@@ -1390,7 +1391,6 @@ class ScrollableAllInOneGraph(ScrollView):
         except:
             size = (sp(1000),sp(1400))
 
-        size = (sp(1000),sp(1400))
         self.graph = AllInOneGraph(conlog=self.conlog, size=size,size_hint=(None,None),n_days=self.n_days)
         self.add_widget(self.graph)
 
@@ -1582,7 +1582,8 @@ class MainView(BoxLayout):
         #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
         self.n_days = 4
-        relatlayout = ScrollableAllInOneGraph(conlog = self.connlog,size_hint=(None,None),size=self.size,size_inside=(900,500), n_days=self.n_days )#(500,500))
+        size = self.height,self.width
+        relatlayout = ScrollableAllInOneGraph(conlog = self.connlog,size_hint=(None,None),size=self.size,size_inside=size, n_days=self.n_days )#(500,500))
         relatlayout.pos=self.bv.pos
         relatlayout.size=self.bv.size
         self.bv.add_widget(relatlayout )
