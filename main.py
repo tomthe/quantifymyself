@@ -35,10 +35,10 @@ import sqlite3
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.7"
+__version__ = "0.3.8"
 
 
-class AllInOneGraph(ScatterLayout):
+class AllInOneGraph(RelativeLayout):
     offset_x=sp(50)
     offset_y=sp(50)
     n_days=10
@@ -47,6 +47,7 @@ class AllInOneGraph(ScatterLayout):
     def __init__(self, **kwargs):
         #self.entry=kwargs['entry']
         self.size = (600,600)
+
         super(AllInOneGraph, self).__init__(**kwargs)
         self.conlog = kwargs['conlog']
         try:
@@ -57,6 +58,7 @@ class AllInOneGraph(ScatterLayout):
             except:
                 self.n_days = 6
             endday = datetime.now()
+            endday = datetime(2015,4,23)
             #endday = datetime(endday.year,endday.month,endday.day)
             self.log_def={'n_days':self.n_days, 'size':(1400,1200), 'endday':endday,'font_size':11}
         self.init_variables()
@@ -209,7 +211,7 @@ class AllInOneGraph(ScatterLayout):
             Color(0.2,0.5,1.0,2)
             Line(points=points,width=1.6)
             Color(10,1.0,0.2,2.2)
-            #Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
+            Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
 
 
     def paint_singleevent(self,entry,date,label_extra_offset_y):
@@ -348,9 +350,9 @@ class AllInOneGraph(ScatterLayout):
 
     def rgb_from_string(self,string):
         try:
-            r = float( len(string) % 12 ) / 12
-            g = float( ord(string[0]) % 33) / 33
-            b = float( ord(string[1]) % 24) / 24
+            r = float( len(string) % 10 ) / 15.0 + 0.25
+            g = float( ord(string[0]) % 30) / 40.0 + 0.2
+            b = (ord(string[1]) + ord(string[2])) % 30 / 40.0 + 0.25
         except Exception, e:
             Logger.error("rgb_from_string failed... string: '" + str(string) + "'; " +str(e) )
             r,g,b = 0.6,0.5,0.6
@@ -1586,7 +1588,7 @@ class MainView(BoxLayout):
         relatlayout = ScrollableAllInOneGraph(conlog = self.connlog,size_hint=(None,None),size=self.size,size_inside=size, n_days=self.n_days )#(500,500))
         relatlayout.pos=self.bv.pos
         relatlayout.size=self.bv.size
-        self.bv.add_widget(relatlayout )
+        self.bv.add_widget(relatlayout)
         self.bv.do_layout()
         #relatlayout.paintAll()
 
