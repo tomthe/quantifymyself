@@ -34,17 +34,18 @@ def get_accelerometer_activity():
         val = accelerometer.acceleration[:3]
         if (not val == (None, None, None)):
             asum += abs(val[0] - lastx) + abs(val[1] - lasty) + abs(val[2] - lastz)
-            Logger.info("yeah! accelerometer-values:" + str(datetime.now()) + "; " + str(asum) + "; x: " + str(val[0]) + "  y: " + str(val[1]) + "  z: " + str(val[2]))
+            Logger.info("yeah! accelerometer-values:" + str(datetime.now()) + "; asum: " + str(round(asum,2)) + "; x: " + str(round(val[0],2)) + "  y: " + str(round(val[1],2)) + "  z: " + str(round(val[2],2)))
             lastx = val[0]
             lasty = val[1]
             lastz = val[2]
         else:
-            Logger.info("no accelerometer-values at " + str(datetime.now()) + "; " + str(asum) + "; x: " + str(val[0]) + "  y: " + str(val[1]) + "  z: " + str(val[2]))
+            Logger.info("no accelerometer-values at " + str(datetime.now()) + "; " + str(asum))
+
         sleep(0.1)
     Logger.info("asum: " + str(asum))
 
     accelerometer.disable()
-    return asum,val
+    return asum, val
 
 if __name__ == '__main__':
     #osc.init()
@@ -64,7 +65,9 @@ if __name__ == '__main__':
         sleep(300.0)
         now = datetime.now()
         asum, vals = get_accelerometer_activity()
-        output.write("\n " + str(i) + "; " + str(now) + ";  " + str(asum)) + ";  " + str(vals)
+        Logger.info("before output..." )
+        Logger.info(str(vals))
+        output.write("\n " + str(i) + "; " + str(now) + ";  " + str(asum) + ";  " + str(vals))
         #output.write("\n-" + str(i) + "; " + str(now))
         if i % 3 == 0:
 
