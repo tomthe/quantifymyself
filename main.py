@@ -1634,8 +1634,9 @@ class QuantifyApp(App):
     def start_service(self):
         if platform == 'android':
             from android import AndroidService
-            service = AndroidService('my pong service', 'running')
+            service = AndroidService('QuantifyService', 'collecting data')
             service.start('service started')
+            Logger.info("Service started at: " + str(datetime.now()))
             self.service = service
 
     def load_files(self):
