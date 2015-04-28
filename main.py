@@ -1629,7 +1629,7 @@ class QuantifyApp(App):
         self.load_files()
         self.mainBL = MainView(button_dict=self.button_dict,app=self,connlog=connlog)
         EventLoop.window.bind(on_keyboard=self.hook_keyboard)
-        self.start_service()
+        #self.start_service()
         return self.mainBL
 
     def start_service(self):
