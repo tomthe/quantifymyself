@@ -32,7 +32,7 @@ version.filename = %(source.dir)s/main.py
 # version = 1.2.0
 
 # (list) Application requirements
-requirements = kivy, sqlite3
+requirements = kivy, sqlite3, plyer
 
 # (list) Garden requirements
 #garden_requirements =
@@ -55,7 +55,7 @@ fullscreen = 0
 #
 
 # (list) Permissions
-android.permissions = READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, INTERNET
+android.permissions = READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, INTERNET, android.hardware.sensor.accelerometer
 
 # (int) Android API to use
 #android.api = 14

@@ -35,7 +35,7 @@ import sqlite3
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.8"
+__version__ = "0.3.11"
 
 
 class AllInOneGraph(RelativeLayout):
