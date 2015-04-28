@@ -32,10 +32,11 @@ from kivy.uix.textinput import TextInput
 
 import sqlite3
 
+connlog = None
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.13"
+__version__ = "0.3.14"
 
 
 class AllInOneGraph(RelativeLayout):
@@ -58,7 +59,7 @@ class AllInOneGraph(RelativeLayout):
             except:
                 self.n_days = 6
             endday = datetime.now()
-            endday = datetime(2015,4,23)
+            #endday = datetime(2015,4,23)
             #endday = datetime(endday.year,endday.month,endday.day)
             self.log_def={'n_days':self.n_days, 'size':(1400,1200), 'endday':endday,'font_size':11}
         self.init_variables()
@@ -125,7 +126,7 @@ class AllInOneGraph(RelativeLayout):
             sqltext = "SELECT * FROM lines " \
                       "WHERE prio > 0 " \
                       "ORDER BY prio DESC;"
-            c = self.conlog.cursor()
+            c = connlog.cursor() #self.conlog.cursor()
             c.execute(sqltext)
             result = c.fetchall()
             for linedef in result:
@@ -145,7 +146,7 @@ class AllInOneGraph(RelativeLayout):
                 `name`	TEXT,
                 `visible` INTEGER DEFAULT 1
                 );'''
-            c = self.conlog.cursor()
+            c = connlog.cursor() # self.conlog.cursor()
             c.execute(sqltext)
 
 
@@ -160,7 +161,7 @@ class AllInOneGraph(RelativeLayout):
         offset_y = self.offset_y
         available_width= int(description['width'])
         min,max = description['min'], description['max']
-        c = self.conlog.cursor()
+        c = connlog.cursor() # self.conlog.cursor()
         #print "between paint_line....sql...."
         sqltext = description['select_statement'].replace('n_days',str(self.n_days)) # "SELECT * FROM log WHERE ((time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days')) AND (button_id=" + str(description['button_id']) + "));"
         #print sqltext
@@ -292,7 +293,7 @@ class AllInOneGraph(RelativeLayout):
         #extra-offset: so that the labels dont overlap
         label_extra_offset_y=0
         print "before paint_all...sql....1"
-        c = self.conlog.cursor()
+        c = connlog.cursor() # self.conlog.cursor()
         sqltext = "SELECT * FROM log WHERE time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days');"
         c.execute(sqltext)
         #print "before paint_line...after execute.sql....",sqltext
@@ -858,7 +859,7 @@ class EnterView2(BoxLayout):
     def add_line_to_db_from_log2_entry(self,entry):
         print "add..line: ",entry
         print len(entry), "---", entry.insert(0,randint(0,999999))
-        self.parent.app.connlog.execute("INSERT INTO log VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",entry)
+        connlog.execute("INSERT INTO log VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",entry)
         #Clock.schedule_once(lambda dt: self.parent.app.connlog.commit())
         #self.parent.app.connlog.commit()
         #self.convert_db()
@@ -874,7 +875,7 @@ class EnterView2(BoxLayout):
         print len(self.parent_button_view.log2[2]), self.parent_button_view.log2[2:5]
         for line in self.parent_button_view.log2:
             try:
-                self.parent.app.connlog.execute(
+                connlog.execute(
                     """INSERT INTO log (button_id,entryname, type,note, categories, timename1 , time1, timename2, time2,
                            timename3, time3 , timename4 ,  time4, valuename1, value1, valuename2,
                            value2, valuename3, value3, valuename4 , value4) VALUES (?,?,?,?, ?,?,?,?, ?,?,?,?, ?,?,?,?, ?,?,?,?, ?);""", line)
@@ -882,7 +883,7 @@ class EnterView2(BoxLayout):
             except:
                 print "error....", line, len(line)
         print "jo"
-        self.parent.app.connlog.commit()
+        connlog.commit()
 
 class NewEnterView2(BoxLayout):
     '''add a new button to the button-view'''
@@ -1416,9 +1417,9 @@ class MainView(BoxLayout):
         #self.entry=kwargs['entry']
         super(MainView, self).__init__(**kwargs)
         self.button_dict=kwargs['button_dict']
-        self.connlog = kwargs['connlog']
+        #connlog = kwargs['connlog']
         self.app = kwargs['app']
-        self.bv = ButtonView(button_dict=self.button_dict,app=self.app,connlog=self.connlog)
+        self.bv = ButtonView(button_dict=self.button_dict,app=self.app,connlog=connlog)
         self.add_widget(self.bv)
 
 
@@ -1430,7 +1431,7 @@ class MainView(BoxLayout):
 
         gridlayout.size_hint_y =None
         sqltext = "SELECT * FROM log WHERE time1 between date('now', '-5 days') and date('now', '+1 days') ORDER BY time1;"
-        c = self.connlog.cursor()
+        c = connlog.cursor()
         c.execute(sqltext)
         result = c.fetchall()
         for entry in result:
@@ -1456,7 +1457,7 @@ class MainView(BoxLayout):
 
         gridlayout.size_hint_y =None
         sqltext = "SELECT categories, entryname, note, valuename1,value1, valuename2,value2, valuename3,value3, valuename4,value4,timename1,time1,timename2,time2,timename3,time3,timename4,time4 FROM log WHERE time1 between date('now', '-14 days') and date('now', '+1 days') ORDER BY time1;"
-        c = self.connlog.cursor()
+        c = connlog.cursor()
         c.execute(sqltext)
         result = c.fetchall()
         for entry in result:
@@ -1482,7 +1483,7 @@ class MainView(BoxLayout):
         i=0
         lastdate = datetime(2010,1,1,0,0)
         sqltext = "SELECT * FROM log WHERE time1 between date('now', '-4 days') and date('now', '+1 days') ORDER BY time1;"
-        c = self.connlog.cursor()
+        c = connlog.cursor()
         c.execute(sqltext)
         result = c.fetchall()
         for entry in result:
@@ -1551,7 +1552,7 @@ class MainView(BoxLayout):
             lastdate = datetime(2010,1,1,0,0)
             #print "lastdate:  ",lastdate
             sqltext = "SELECT * FROM log WHERE time1 between date('now', '-4 days') and date('now', '+1 days') ORDER BY time1;"
-            c = self.connlog.cursor()
+            c = connlog.cursor()
             c.execute(sqltext)
             result = c.fetchall()
             for entry in result:
@@ -1576,7 +1577,7 @@ class MainView(BoxLayout):
     def paint_log_static(self,instance=None):
         #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
-        relatlayout = AllInOneGraph(conlog = self.connlog,n_days=7)
+        relatlayout = AllInOneGraph(conlog = connlog,n_days=7)
         self.bv.add_widget(relatlayout )
         relatlayout.paintAll()
 
@@ -1585,7 +1586,7 @@ class MainView(BoxLayout):
         self.bv.clear_widgets()
         self.n_days = 4
         size = self.height,self.width
-        relatlayout = ScrollableAllInOneGraph(conlog = self.connlog,size_hint=(None,None),size=self.size,size_inside=size, n_days=self.n_days )#(500,500))
+        relatlayout = ScrollableAllInOneGraph(conlog = connlog,size_hint=(None,None),size=self.size,size_inside=size, n_days=self.n_days )#(500,500))
         relatlayout.pos=self.bv.pos
         relatlayout.size=self.bv.size
         self.bv.add_widget(relatlayout)
@@ -1596,7 +1597,7 @@ class MainView(BoxLayout):
         #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
         self.n_days += 14
-        relatlayout = ScrollableAllInOneGraph(conlog = self.connlog,size_hint=(None,None),size=self.size, n_days=self.n_days )#(500,500))
+        relatlayout = ScrollableAllInOneGraph(conlog = connlog,size_hint=(None,None),size=self.size, n_days=self.n_days )#(500,500))
         relatlayout.pos=self.bv.pos
         relatlayout.size=self.bv.size
         self.bv.add_widget(relatlayout )
@@ -1626,7 +1627,7 @@ class QuantifyApp(App):
 
     def build(self):
         self.load_files()
-        self.mainBL = MainView(button_dict=self.button_dict,app=self,connlog=self.connlog)
+        self.mainBL = MainView(button_dict=self.button_dict,app=self,connlog=connlog)
         EventLoop.window.bind(on_keyboard=self.hook_keyboard)
         self.start_service()
         return self.mainBL
@@ -1646,8 +1647,9 @@ class QuantifyApp(App):
             Logger.error('failed to load button-db, e: ' + str(e))
             self.button_dict =[{"button_id": 1,"calendars": [ { "name": "start" },  { "name": "stop" }], "lasttime": "2014-09-04 16:09",                "note": True,                "sliders": [                    {                        "slider_def": "5.0",                        "slider_max": "10.0",                        "slider_min": "0.0",                        "slider_name": "productivity"                    }                ],                "status": "stopped",                "text": "Work start stop",                "type": "startstop"}]
         try:
-            self.connlog = sqlite3.connect(self.filename_db)
-            self.connlog.execute('''CREATE TABLE IF NOT EXISTS log
+            global connlog
+            connlog = sqlite3.connect(self.filename_db)
+            connlog.execute('''CREATE TABLE IF NOT EXISTS log
                        (ID INT PRIMARY KEY,
                        button_id    INT,
                        entryname    TEXT, type         TEXT,
@@ -1657,8 +1659,8 @@ class QuantifyApp(App):
                        value1 NUMERIC, valuename2 VARCHAR(21),value2 NUMERIC,valuename3 VARCHAR(21), value3 NUMERIC,
                        valuename4 VARCHAR(21), value4 NUMERIC
                        );''')
-            print "squlito", self.connlog, self.filename_db
-            self.connlog.row_factory = sqlite3.Row
+            print "squlito", connlog, self.filename_db
+            connlog.row_factory = sqlite3.Row
         except Exception,e:
             Logger.error('failed to load sqlite database, e: ' + str(e) + "creating datatable...")
             #self.log2 = [[1,        "4zeiten",        "log",        "",        "test|",        "tim1",        "2014-09-06 14:16",        "start1",        "2014-09-04 14:16",        "start2",        "2014-09-04 14:16",        "stop1",        "2014-09-04 14:16",        "slo1",        1.5,        "slo2",        2.0,        "vi1",        1.4,        "ve2",        2.0    ]]
@@ -1672,12 +1674,12 @@ class QuantifyApp(App):
     def save(self):
         Logger.info("save files...")
         self.writeJson(self.filename_buttondict, self.button_dict)
-        self.connlog.commit()
+        connlog.commit()
         #self.log2csv(self.filename_log2csv)
 
     def on_stop(self):
         self.on_pause()
-        self.connlog.close()
+        connlog.close()
 
     def loadJson(self,filename):
         Logger.info("load Json. Filename: " + filename)
@@ -1715,13 +1717,14 @@ class QuantifyApp(App):
 
             from shutil import copyfile
             copyfile(self.filename_db,exportpathfile_quantlog)
-            copyfile(self.filename_db,exportpathfile_button)
+            copyfile(self.filename_buttondict,exportpathfile_button)
             Logger.info("exported to: " + exportpathfile_button + "; " + exportpathfile_quantlog)
 
         except Exception, e:
             Logger.error("export failed! "+ export_dir + ";   " + str(e))
 
     def import_all(self):
+        connlog.close()
         try:
             export_dir = "/storage/sdcard1/quantifyMyself/"
             if platform =="android":
@@ -1738,15 +1741,20 @@ class QuantifyApp(App):
                 from os.path import getctime
                 latest_quantlog_filename = max(iglob(export_dir + '*' + self.filename_db), key=getctime)
                 latest_buttonlog_filename = max(iglob(export_dir + '*' + self.filename_buttondict), key=getctime)
-                Logger.info("import from: " + latest_quantlog_filename + "  " + latest_buttonlog_filename )
+                Logger.info("import from: " + latest_quantlog_filename + " ; " + latest_buttonlog_filename )
+                Logger.info("import   to: " + self.filename_db + " ; " + self.filename_buttondict )
                 copyfile(latest_quantlog_filename, self.filename_db)
                 copyfile(latest_buttonlog_filename,self.filename_buttondict)
 
-                self.mainBL.bv.button_dict = self.mainBL.bv.button_dict = self.button_dict = self.loadJson(export_dir + self.filename_buttondict)
+                #self.mainBL.bv.button_dict = self.mainBL.bv.button_dict = self.button_dict = self.loadJson(self.filename_buttondict)
+                self.load_files()
                 self.mainBL.bv.show_first_level()
-                Logger.info("import successfull: " + latest_buttonlog_filename + "; imported quantlog: "+ latest_quantlog_filename)
+                Logger.info("import successfull: " + latest_buttonlog_filename + "; imported quantlog: " + latest_quantlog_filename)
+                Logger.info("db: " + str(connlog))
         except Exception, e:
             Logger.error("import failed! "+ export_dir + ";   " + str(e))
+        finally:
+            pass
 
     def log2csv(self,filename="log2.csv"):
         try:
