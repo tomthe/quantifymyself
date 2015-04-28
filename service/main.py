@@ -20,12 +20,14 @@ def answer_message():
 def get_accelerometer_activity():
     i = 0
     asum = 0.0
+    lastx = lasty = lastz = 0
 
     val = accelerometer.acceleration[:3]
     if (not val == (None, None, None)):
         lastx = val[0]
         lasty = val[1]
         lastz = val[2]
+        Logger.info("x: " + str(val[0]) + "  y: " + str(val[1]) + "  z: " + str(val[2]))
 
     while i < 10:
         i += 1
@@ -37,7 +39,7 @@ def get_accelerometer_activity():
             lasty = val[1]
             lastz = val[2]
         else:
-            Logger.info("no accelerometer-values" + str(asum))
+            Logger.info("no accelerometer-values " + str(asum))
         sleep(0.1)
     Logger.info("asum: " + str(asum))
     return asum
@@ -55,12 +57,13 @@ if __name__ == '__main__':
     while True:
         i += 1
         #osc.readQueue(oscid)
-        sleep(10.0)
+        sleep(300.0)
         now = datetime.now()
-        Logger.info("5s-" + str(now))
+        asum = get_accelerometer_activity()
+        output.write("\n" + str(asum))
+        #Logger.info("5s-" + str(now))
         output.write("\n-" + str(i) + "; " + str(now))
-        if i % 6 == 0:
+        if i % 3 == 0:
+
             output.close()
             output = open(filename, 'a')
-            asum = get_accelerometer_activity()
-            output.write("\n" + str(asum))
