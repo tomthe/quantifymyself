@@ -1628,7 +1628,15 @@ class QuantifyApp(App):
         self.load_files()
         self.mainBL = MainView(button_dict=self.button_dict,app=self,connlog=self.connlog)
         EventLoop.window.bind(on_keyboard=self.hook_keyboard)
+        self.start_service()
         return self.mainBL
+
+    def start_service(self):
+        if platform == 'android':
+            from android import AndroidService
+            service = AndroidService('my pong service', 'running')
+            service.start('service started')
+            self.service = service
 
     def load_files(self):
         try:
