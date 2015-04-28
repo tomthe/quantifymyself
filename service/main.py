@@ -88,8 +88,8 @@ if __name__ == '__main__':
     output.close()
     Logger.info(str(get_accelerometer_activity()))
     output2 = open(filename, 'a+')
-
-    gyroOut = open("gyro1.txt")
+    get_gyroscope_activity()
+    gyroOut = open("gyro1.txt",'a+')
     gyroOut.write("\n\ngyrotest....\n")
     gyroOut.write(str(get_gyroscope_activity()))
 
