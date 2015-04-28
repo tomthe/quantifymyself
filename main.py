@@ -36,7 +36,7 @@ connlog = None
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.16"
+__version__ = "0.3.17"
 
 
 class AllInOneGraph(RelativeLayout):
