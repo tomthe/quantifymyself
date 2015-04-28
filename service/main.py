@@ -84,12 +84,12 @@ if __name__ == '__main__':
     i=0
     output = open(filename, 'a')
     output.write("\n\nfirst line... test...")
-    output.write("\n first measurement: " + str(get_accelerometer_activity()))
+    output.write("\n first measurementx: " + str(get_accelerometer_activity()))
     output.close()
     Logger.info(str(get_accelerometer_activity()))
     output2 = open(filename, 'a')
 
-    gyroOut = open("gyro" + str(datetime.now().date) + ".txt")
+    gyroOut = open("gyro1.txt")
     gyroOut.write("\n\ngyrotest....\n")
     gyroOut.write(str(get_gyroscope_activity()))
 
@@ -104,7 +104,7 @@ if __name__ == '__main__':
         Logger.info("  " + str(i) + "; " + str(now) + ";  " + str(asum) + ";  " + str(vals))
         output2.write("\n " + str(i) + "; " + str(now) + ";  " + str(asum) + ";  " + str(vals))
         Logger.info("after output ")
-        gyrosum,vals = gyroOut()
+        gyrosum,vals = get_gyroscope_activity()
         Logger.info(" " + str(i) + "; " + str(now) + ";  " + str(gyrosum) + ";  " + str(vals))
         gyroOut.write("\n " + str(i) + "; " + str(now) + ";  " + str(gyrosum) + ";  " + str(vals))
         #output.write("\n-" + str(i) + "; " + str(now))
