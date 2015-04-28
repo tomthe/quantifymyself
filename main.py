@@ -36,7 +36,7 @@ connlog = None
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.17"
+__version__ = "0.3.18"
 
 
 class AllInOneGraph(RelativeLayout):
@@ -1604,6 +1604,8 @@ class MainView(BoxLayout):
         self.bv.do_layout()
         #relatlayout.paintAll()
 
+    def start_service(self):
+        self.app.start_service()
 
     def export_all(self):
         self.app.export_all()
