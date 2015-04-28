@@ -82,12 +82,12 @@ if __name__ == '__main__':
     #oscid = osc.listen(ipAddr='127.0.0.1', port=serviceport)
     #osc.bind(oscid, some_api_callback, '/some_api')
     i=0
-    output = open(filename, 'a')
+    output = open(filename, 'a+')
     output.write("\n\nfirst line... test...")
     output.write("\n first measurementx: " + str(get_accelerometer_activity()))
     output.close()
     Logger.info(str(get_accelerometer_activity()))
-    output2 = open(filename, 'a')
+    output2 = open(filename, 'a+')
 
     gyroOut = open("gyro1.txt")
     gyroOut.write("\n\ngyrotest....\n")
