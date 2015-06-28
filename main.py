@@ -33,11 +33,128 @@ from kivy.uix.textinput import TextInput
 import sqlite3
 
 connlog = None
+bv = None
+
+n_days = 6
+graph_size = (1200,900)
 
 kivy.require('1.0.7')
 
 __version__ = "0.3.17"
 
+
+class startGraph(BoxLayout):
+    slider_width = None
+    slider_heigth = None
+    slider_days = None
+
+    def __init__(self, **kwargs):
+        super(startGraph, self).__init__(**kwargs)
+        self.orientation = 'vertical'
+        self.log_def={'n_days':5, 'size':(1400,1200), 'endday':datetime.now(),'font_size':11}
+        self.clear_widgets()
+
+        label_text= Label()
+        label_text.text = 'Show Graph'
+        self.add_widget(label_text)
+
+
+        slider_wid = CustomKnob() #CustomSlider()
+        slider_wid.value = graph_size[0]
+        slider_wid.ltext = 'width'
+        slider_wid.min = 0
+        slider_wid.max = 3000
+        self.add_widget(slider_wid)
+        self.slider_width = slider_wid
+
+        slider_wid = CustomKnob() #CustomSlider()
+        slider_wid.value = graph_size[1]
+        slider_wid.ltext = 'height'
+        slider_wid.min = 0
+        slider_wid.max = 3000
+        self.add_widget(slider_wid)
+        self.slider_heigth = slider_wid
+
+        slider_wid = CustomKnob() #CustomSlider()
+        slider_wid.value = n_days
+        slider_wid.ltext = 'n days'
+        slider_wid.min = 1
+        slider_wid.max = 300
+        self.add_widget(slider_wid)
+        self.slider_days = slider_wid
+
+        lines = self.get_linedefs()
+        print lines
+        i_lines = 0
+        for linedef in lines:
+            if i_lines % 4 == 0:
+                try:
+                    self.add_widget(outer_box)
+                    outer_box = BoxLayout()
+                except:
+                    outer_box = BoxLayout()
+
+            i_lines +=1
+            print linedef, "--------------aaaaaaaaaaaaaaaaaaaaaa"
+            print "name: ", linedef['name']
+            boxlay = BoxLayout()
+            checkline = CheckBox()
+            print "visible: " ,linedef['visible'], linedef['name'], linedef['visible']=='0',linedef['visible']==0
+            if linedef['visible'] == 0:
+                checkline.active = False
+            else:
+                checkline.active = True
+            boxlay.add_widget(checkline)
+            label_line = Label(text=linedef['name'])
+            boxlay.add_widget(label_line)
+            outer_box.add_widget(boxlay)
+        self.add_widget(outer_box)
+
+
+        print "those were the lines....!"
+
+        bt_ok = Button()
+        bt_ok.text = "OK"
+        bt_ok.bind(on_press=self.ok)
+        self.add_widget(bt_ok)
+        bt_cancel = Button()
+        bt_cancel.text = "cancel"
+        bt_cancel.bind(on_press=self.cancelf)
+        self.add_widget(bt_cancel)
+
+    def get_linedefs(self):
+        pass
+        sqltext = "SELECT * FROM lines " \
+                      "ORDER BY prio DESC;"
+        c = connlog.cursor() #self.conlog.cursor()
+        c.execute(sqltext)
+        result = c.fetchall()
+        return result
+
+    def cancelf(self,instance=None):
+        try:
+            self.parent_button_view.clear_widgets()
+            self.parent_button_view.show_first_level()
+        except:
+            bv.clear_widgets()
+            bv.show_first_level()
+
+    def ok(self,instance=None):
+        global n_days
+        global graph_size
+        #print "### the whole log2: ", self.log2
+        self.clear_widgets()
+        n_days = int(self.slider_days.value)
+        print self.slider_heigth.value,self.slider_width.value
+        graph_size = (int(self.slider_width.value), int(self.slider_heigth.value))
+
+        log_def = {"n_days":n_days,'size':graph_size, 'size_inside':graph_size, 'endday':datetime.now()}
+
+        relatlayout = ScrollableAllInOneGraph(log_def=log_def)
+        relatlayout.pos=self.pos
+        relatlayout.size=self.size
+        self.add_widget(relatlayout )
+        self.do_layout()
 
 class AllInOneGraph(RelativeLayout):
     offset_x=sp(50)
@@ -47,13 +164,17 @@ class AllInOneGraph(RelativeLayout):
 
     def __init__(self, **kwargs):
         #self.entry=kwargs['entry']
-        self.size = (600,600)
 
         super(AllInOneGraph, self).__init__(**kwargs)
-        self.conlog = kwargs['conlog']
+        self.conlog = connlog
         try:
             self.log_def=kwargs['log_def']
+            try:
+                endday = self.log_def['endday']
+            except:
+                self.log_def['endday'] = datetime.now()
         except:
+            print "log_def failed - AllInOneGraph  "
             try:
                 self.n_days = kwargs['n_days']
             except:
@@ -61,11 +182,13 @@ class AllInOneGraph(RelativeLayout):
             endday = datetime.now()
             #endday = datetime(2015,4,23)
             #endday = datetime(endday.year,endday.month,endday.day)
-            self.log_def={'n_days':self.n_days, 'size':(1400,1200), 'endday':endday,'font_size':11}
+            self.log_def={'n_days':self.n_days, 'size_inside':(1400,1200), 'endday':endday,'font_size':11}
+
+        self.size = self.log_def['size_inside']#(600,600)
         self.init_variables()
-        #self.init_variables()
 
     def init_variables(self):
+        self.n_days = self.log_def['n_days']
         self.h=self.height-2*self.offset_y
         self.w=self.width-2*self.offset_x
         self.day_height=self.h/self.n_days
@@ -74,8 +197,10 @@ class AllInOneGraph(RelativeLayout):
 
         self.endday = self.log_def['endday']
         self.n_days = self.log_def['n_days']
-
-        self.font_size = self.log_def['font_size']
+        try:
+            self.font_size = self.log_def['font_size']
+        except:
+            self.font_size = sp(11)
 
     def paint_hour_axis_orig(self):
         hour0 = datetime(2010,1,1)
@@ -211,9 +336,12 @@ class AllInOneGraph(RelativeLayout):
         with self.canvas:
             Color(0.2,0.5,1.0,2)
             Line(points=points,width=1.6)
-            Color(10,1.0,0.2,2.2)
-            Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
-
+            try:
+                if self.log_def['paint_bezier_lines']:
+                    Color(10,1.0,0.2,2.2)
+                    Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
+            except:
+                pass
 
     def paint_singleevent(self,entry,date,label_extra_offset_y):
         #paint circle and label
@@ -1363,12 +1491,11 @@ class TestScrollableAllInOneGraph(RelativeLayout):
         #self.entry=kwargs['entry']
         super(TestScrollableAllInOneGraph, self).__init__(**kwargs)
         self.log2=kwargs['log2']
-        self.conlog=kwargs['conlog']
         try:
             self.n_days = kwargs['n_days']
         except:
             self.n_days = 10
-        self.graph = ScrollableAllInOneGraph(log2=self.log2, conlog=self.conlog, size=(400,400),size_hint=(None,None),n_days=self.n_days)
+        self.graph = ScrollableAllInOneGraph(log2=self.log2, size=(400,400),size_hint=(None,None),n_days=self.n_days)
         self.add_widget(self.graph)
 
         self.graph.paintAll()
@@ -1382,21 +1509,23 @@ class ScrollableAllInOneGraph(ScrollView):
     def __init__(self, **kwargs):
         #self.entry=kwargs['entry']
         super(ScrollableAllInOneGraph, self).__init__(**kwargs)
-        self.conlog=kwargs['conlog']
+        self.conlog=connlog
         self.scroll_x = 0.0
         self.scroll_y = 0
-        try:
-            self.n_days = kwargs['n_days']
-        except:
-            self.n_days = 10
-        try:
-            size = (sp(kwargs['size_inside'][0]),sp(kwargs['size_inside'][1]))
-        except:
-            size = (sp(1000),sp(1400))
 
-        self.graph = AllInOneGraph(conlog=self.conlog, size=size,size_hint=(None,None),n_days=self.n_days)
+        try:
+            self.log_def = kwargs['log_def']
+            size = self.log_def['size_inside']
+            n_days = self.log_def['n_days']
+            print "ScrollableGraph: Successfull"
+        except:
+            size = (sp(1000), sp(1400))
+            endday = datetime.now()
+            self.log_def={'n_days':8, 'size':size, 'endday':endday,'font_size':11}
+            print "ScrollableGraph: generated new log_def"
+
+        self.graph = AllInOneGraph(size=size,size_hint=(None,None),log_def=self.log_def)
         self.add_widget(self.graph)
-
         self.graph.paintAll()
 
     def paintAll(self):
@@ -1420,6 +1549,8 @@ class MainView(BoxLayout):
         #connlog = kwargs['connlog']
         self.app = kwargs['app']
         self.bv = ButtonView(button_dict=self.button_dict,app=self.app,connlog=connlog)
+        global bv
+        bv = self.bv
         self.add_widget(self.bv)
 
 
@@ -1584,9 +1715,10 @@ class MainView(BoxLayout):
     def paint_log(self,instance=None):
         #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
-        self.n_days = 4
         size = self.height,self.width
-        relatlayout = ScrollableAllInOneGraph(conlog = connlog,size_hint=(None,None),size=self.size,size_inside=size, n_days=self.n_days )#(500,500))
+        self.n_days = 6
+        self.log_def={'n_days':self.n_days, 'size_inside':size, 'font_size':13}
+        relatlayout = ScrollableAllInOneGraph(size=self.size,log_def=self.log_def)
         relatlayout.pos=self.bv.pos
         relatlayout.size=self.bv.size
         self.bv.add_widget(relatlayout)
@@ -1597,13 +1729,19 @@ class MainView(BoxLayout):
         #print "### the whole log2: ", self.log2
         self.bv.clear_widgets()
         self.n_days += 14
-        relatlayout = ScrollableAllInOneGraph(conlog = connlog,size_hint=(None,None),size=self.size, n_days=self.n_days )#(500,500))
+        size = (1400,1400)
+        self.log_def={'n_days':self.n_days, 'size_inside':size, 'font_size':11}
+        relatlayout = ScrollableAllInOneGraph(n_days=self.n_days,log_def=self.log_def)
         relatlayout.pos=self.bv.pos
         relatlayout.size=self.bv.size
         self.bv.add_widget(relatlayout )
         self.bv.do_layout()
         #relatlayout.paintAll()
 
+    def show_start_graph(self,instance=None):
+        self.bv.clear_widgets()
+        relatlayout = startGraph()
+        self.bv.add_widget(relatlayout)
 
     def export_all(self):
         self.app.export_all()
@@ -1629,7 +1767,6 @@ class QuantifyApp(App):
         self.load_files()
         self.mainBL = MainView(button_dict=self.button_dict,app=self,connlog=connlog)
         EventLoop.window.bind(on_keyboard=self.hook_keyboard)
-        #self.start_service()
         return self.mainBL
 
     def start_service(self):
