@@ -40,7 +40,7 @@ graph_size = (1200,900)
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.17"
+__version__ = "0.3.18"
 
 
 class startGraph(BoxLayout):
@@ -86,6 +86,7 @@ class startGraph(BoxLayout):
         lines = self.get_linedefs()
         print lines
         i_lines = 0
+        self.checklines=[]
         for linedef in lines:
             if i_lines % 4 == 0:
                 try:
@@ -95,10 +96,13 @@ class startGraph(BoxLayout):
                     outer_box = BoxLayout()
 
             i_lines +=1
-            print linedef, "--------------aaaaaaaaaaaaaaaaaaaaaa"
-            print "name: ", linedef['name']
+            #print linedef, "--------------aaaaaaaaaaaaaaaaaaaaaa"
+            #print "name: ", linedef['name']
             boxlay = BoxLayout()
             checkline = CheckBox()
+            checkline.name = linedef['name']
+            checkline.status_before = linedef['visible']
+            checkline.lineID = linedef['lineID']
             print "visible: " ,linedef['visible'], linedef['name'], linedef['visible']=='0',linedef['visible']==0
             if linedef['visible'] == 0:
                 checkline.active = False
@@ -108,10 +112,17 @@ class startGraph(BoxLayout):
             label_line = Label(text=linedef['name'])
             boxlay.add_widget(label_line)
             outer_box.add_widget(boxlay)
+            self.checklines.append(checkline)
         self.add_widget(outer_box)
-
-
         print "those were the lines....!"
+
+        boxlay = BoxLayout()
+        self.cb_bezier = CheckBox()
+        boxlay.add_widget(self.cb_bezier)
+        lab_bezier = Label()
+        lab_bezier.text = 'Draw interpolated lines?'
+        boxlay.add_widget(lab_bezier)
+        self.add_widget(boxlay)
 
         bt_ok = Button()
         bt_ok.text = "OK"
@@ -131,6 +142,26 @@ class startGraph(BoxLayout):
         result = c.fetchall()
         return result
 
+    def set_linedefs(self):
+        for cl in self.checklines:
+            print cl, cl.name, cl.active, "-##########"
+            if cl.status_before != cl.active:
+                print "------------------------------------------------------------------------"
+                print "line changed: ", cl.name, cl.active, cl.status_before
+                if cl.active == True:
+                    print "true "
+                    visible = "1"
+                else:
+                    print "false!"
+                    visible = "0"
+                sqltext = "UPDATE lines " \
+                      "SET visible ='" + visible + "'" \
+                      "WHERE name='" + str(cl.name) + "';"
+        #                      "WHERE lineID='" + str(cl.lineID) + "';"
+                c = connlog.cursor() #self.conlog.cursor()
+                c.execute(sqltext)
+        connlog.commit()
+
     def cancelf(self,instance=None):
         try:
             self.parent_button_view.clear_widgets()
@@ -143,12 +174,18 @@ class startGraph(BoxLayout):
         global n_days
         global graph_size
         #print "### the whole log2: ", self.log2
+        self.set_linedefs()
         self.clear_widgets()
         n_days = int(self.slider_days.value)
         print self.slider_heigth.value,self.slider_width.value
         graph_size = (int(self.slider_width.value), int(self.slider_heigth.value))
 
-        log_def = {"n_days":n_days,'size':graph_size, 'size_inside':graph_size, 'endday':datetime.now()}
+
+        log_def = {"n_days":n_days,'size':graph_size, 'size_inside':graph_size, 'endday':datetime.now(),
+                   'paint_bezeir_lines':False}
+
+        if self.cb_bezier.active:
+            log_def['paint_bezier_lines'] = True
 
         relatlayout = ScrollableAllInOneGraph(log_def=log_def)
         relatlayout.pos=self.pos
@@ -247,9 +284,11 @@ class AllInOneGraph(RelativeLayout):
             return entry[14]
 
     def test_paint_line_sql(self):
+        self.floating_average_select()
         try:
             sqltext = "SELECT * FROM lines " \
-                      "WHERE prio > 0 " \
+                      "WHERE prio > 0" \
+                      "AND type <> 'select_floating_avg' " \
                       "ORDER BY prio DESC;"
             c = connlog.cursor() #self.conlog.cursor()
             c.execute(sqltext)
@@ -274,6 +313,92 @@ class AllInOneGraph(RelativeLayout):
             c = connlog.cursor() # self.conlog.cursor()
             c.execute(sqltext)
 
+    def floating_average_select(self):
+        print "uuuuuuuuuuuuuuuuuuuu"
+        try:
+            sqltext = "SELECT * FROM lines " \
+                      "WHERE type = 'select_floating_avg' " \
+                      "ORDER BY prio DESC;"
+            c = connlog.cursor() #self.conlog.cursor()
+            c.execute(sqltext)
+            result = c.fetchall()
+            for linedef in result:
+                if linedef['visible'] != 0:
+                    self.paint_floating_average_select(linedef)
+        except:
+            print "error hier..."
+
+    def paint_floating_average_select(self, description):
+        print "floating_average_select..............................................................qqqqqqqqq                    dfbdfb"
+        #button_id 0, 1entryname,type 2,note 3,categories 4, timename1 5,time1 6,timename2,time2 8,timename3,time3,timename4,time4 12, valuename1 13,value1 14,valuename2 15,value2 16,valuename3,value3 18 ,valuename4,value4 20
+
+        endday = datetime.now()
+        endday = datetime(endday.year,endday.month,endday.day)
+
+        points = []
+        offset_x = self.width
+        offset_y = self.offset_y
+        available_width= int(description['width'])
+        min,max = description['min'], description['max']
+        c = connlog.cursor() # self.conlog.cursor()
+        #print "between paint_line....sql...."
+
+        avg_days = 7
+        print self.n_days, avg_days
+        for dayn in xrange(0,self.n_days,avg_days):
+            print dayn
+            sqltext = description['select_statement'].replace('n_days_start',str(dayn)).replace('n_days_stop',str(dayn - avg_days))
+            print "--------sqltext: ", sqltext
+            #print sqltext
+            c.execute(sqltext)
+            result = c.fetchall()
+            last_date = datetime(2010, 1, 1)
+            print "result",result
+            #print last_date, result
+            for entry in result:
+                print "row:  ", entry
+                try:
+                    #entry = entry[1:]
+                    #print "paint_line_select, entry: ", entry
+                    #print entry["value"]
+                    date1 = datetime.strptime(str(entry['time1']), "%Y-%m-%d %H:%M")
+
+                    value = float(entry['value']) # self.get_value_from_log2_entry(entry, entry['valuename1'])
+                    #print "minmax,value...:", min,max,value,entry
+                    x=offset_x + available_width / float(max-min) * (value - min)
+                    print "###", entry['text'], "offset: ", offset_x,"max,min: ", (max,min,), "value: ", value, "x: ",x, available_width
+                    #determine y: from the date. like in paint_all:
+                    y = self.get_pos_y_from_date(date1,date1.hour/24.0)
+                    #print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
+
+                    with self.canvas:
+                        Rectangle(pos=(x,y),size=(sp(8),sp(8)))
+                        #Line(circle=(x,y,2),width=1)
+                    txt = str(round(float(str(value)),2))
+                    txt = str(entry["text"])+":     " + txt
+                    y=y+sp(12)
+                    label_singleevent = Label(text=txt,font_size=sp(11),size_hint=(None,None),size=(0,0),pos=(x,y))
+                    self.add_widget(label_singleevent)
+                    #points.append((x,y))
+                    points.extend((x,y))
+
+                except Exception, e:
+                    Logger.error("Paint-line-log-error" + str(e) + str(entry))
+            try:
+                label_linename = Label(text=description['name'],font_size=sp(16),size_hint=(None,None),size=(0,0),pos=(x,y-sp(26)))
+                self.add_widget(label_linename)
+                self.width += description['width']
+            except:
+                print "hohohoooh"
+        with self.canvas:
+            Color(0.3,0.6,1.0,2)
+            Line(points=points,width=1.6)
+            try:
+                if self.log_def['paint_bezier_lines']:
+                    Color(10,1.0,0.2,2.2)
+                    Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
+            except:
+                pass
 
     def paint_line_select(self,description):
         #button_id 0, 1entryname,type 2,note 3,categories 4, timename1 5,time1 6,timename2,time2 8,timename3,time3,timename4,time4 12, valuename1 13,value1 14,valuename2 15,value2 16,valuename3,value3 18 ,valuename4,value4 20
@@ -289,6 +414,7 @@ class AllInOneGraph(RelativeLayout):
         c = connlog.cursor() # self.conlog.cursor()
         #print "between paint_line....sql...."
         sqltext = description['select_statement'].replace('n_days',str(self.n_days)) # "SELECT * FROM log WHERE ((time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days')) AND (button_id=" + str(description['button_id']) + "));"
+        print "--------sqltext: ", sqltext
         #print sqltext
         c.execute(sqltext)
         result = c.fetchall()
@@ -301,17 +427,26 @@ class AllInOneGraph(RelativeLayout):
                 #print "paint_line_select, entry: ", entry
                 #print entry["value"]
                 date1 = datetime.strptime(str(entry['time1']), "%Y-%m-%d %H:%M")
-                if ((date1 - last_date).days > 1):
-                    if (last_date != datetime(2010,1,1)):
-                        #print "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP",(date1 - last_date).days
-                        if description['zeroifnot']:
-                            for igapday in xrange((date1.day - last_date.day)-1):
-                                last_date = last_date + timedelta(days=1)
+                if description['zeroifnot']:
+                    if description['type'] == "select":
+                        if ((date1 - last_date).days > 1):
+                            if (last_date != datetime(2010,1,1)):
+                                for igapday in xrange((date1.day - last_date.day)-1):
+                                    points.extend((offset_x,self.get_pos_y_from_date(last_date,0.9)))
+                                    last_date = last_date + timedelta(days=1)
+                    elif description['type'] == "select3days":
+                        if ((date1 - last_date).days > 3):
+                            if (last_date != datetime(2010,1,1)):
                                 points.extend((offset_x,self.get_pos_y_from_date(last_date,0.9)))
+                                for igapday in xrange((date1.day - last_date.day)-1):
+                                    last_date = last_date# + timedelta(days=2)
+                                    points.extend((offset_x,self.get_pos_y_from_date(last_date,0.9)))
+
                 last_date = date1
-                value = entry['value'] # self.get_value_from_log2_entry(entry, entry['valuename1'])
+                value = float(entry['value']) # self.get_value_from_log2_entry(entry, entry['valuename1'])
                 #print "minmax,value...:", min,max,value,entry
-                x=offset_x + available_width / (max-min) * (value - min)
+                x=offset_x + available_width / float(max-min) * (value - min)
+                print "###", entry['text'], "offset: ", offset_x,"max,min: ", (max,min,), "value: ", value, "x: ",x, available_width
                 #determine y: from the date. like in paint_all:
                 y = self.get_pos_y_from_date(date1,date1.hour/24.0)
                 #print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
@@ -334,7 +469,7 @@ class AllInOneGraph(RelativeLayout):
         self.width += description['width']
         #print points, "points....<---"
         with self.canvas:
-            Color(0.2,0.5,1.0,2)
+            Color(0.3,0.6,1.0,2)
             Line(points=points,width=1.6)
             try:
                 if self.log_def['paint_bezier_lines']:
