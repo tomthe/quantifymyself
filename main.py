@@ -40,7 +40,7 @@ graph_size = (1200,900)
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.18"
+__version__ = "0.3.22"
 
 
 class startGraph(BoxLayout):
@@ -1873,8 +1873,14 @@ class MainView(BoxLayout):
         self.bv.do_layout()
         #relatlayout.paintAll()
 
+    def start_service(self):
+        self.app.start_service()
+
     def show_start_graph(self,instance=None):
         self.bv.clear_widgets()
+        relatlayout = startGraph()
+        self.bv.add_widget(relatlayout)
+        
         relatlayout = startGraph()
         self.bv.add_widget(relatlayout)
 
