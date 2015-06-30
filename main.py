@@ -103,7 +103,7 @@ class startGraph(BoxLayout):
             checkline.name = linedef['name']
             checkline.status_before = linedef['visible']
             checkline.lineID = linedef['lineID']
-            print "visible: " ,linedef['visible'], linedef['name'], linedef['visible']=='0',linedef['visible']==0
+            #print "visible: " ,linedef['visible'], linedef['name'], linedef['visible']=='0',linedef['visible']==0
             if linedef['visible'] == 0:
                 checkline.active = False
             else:
@@ -114,7 +114,7 @@ class startGraph(BoxLayout):
             outer_box.add_widget(boxlay)
             self.checklines.append(checkline)
         self.add_widget(outer_box)
-        print "those were the lines....!"
+        #print "those were the lines....!"
 
         boxlay = BoxLayout()
         self.cb_bezier = CheckBox()
@@ -144,10 +144,10 @@ class startGraph(BoxLayout):
 
     def set_linedefs(self):
         for cl in self.checklines:
-            print cl, cl.name, cl.active, "-##########"
+            #print cl, cl.name, cl.active, "-##########"
             if cl.status_before != cl.active:
-                print "------------------------------------------------------------------------"
-                print "line changed: ", cl.name, cl.active, cl.status_before
+                #print "------------------------------------------------------------------------"
+                #print "line changed: ", cl.name, cl.active, cl.status_before
                 if cl.active == True:
                     print "true "
                     visible = "1"
@@ -294,9 +294,9 @@ class AllInOneGraph(RelativeLayout):
             c = connlog.cursor() #self.conlog.cursor()
             c.execute(sqltext)
             result = c.fetchall()
-            print "result74: ", result
+            #print "result74: ", result
             for linedef in result:
-                print "resultii: ", linedef
+                #print "resultii: ", linedef
                 if linedef['visible'] != 0:
                     self.paint_line_select(linedef)
         except Exception,e:
@@ -318,7 +318,6 @@ class AllInOneGraph(RelativeLayout):
             c.execute(sqltext)
 
     def floating_average_select(self):
-        print "uuuuuuuuuuuuuuuuuuuu"
         try:
             sqltext = "SELECT * FROM lines " \
                       "WHERE type = 'select_floating_avg' " \
@@ -333,7 +332,7 @@ class AllInOneGraph(RelativeLayout):
             print "error hier...", str(e)
 
     def paint_floating_average_select(self, description):
-        print "floating_average_select..............................................................qqqqqqqqq                    dfbdfb"
+        print "floating_average_select.................................."
         #button_id 0, 1entryname,type 2,note 3,categories 4, timename1 5,time1 6,timename2,time2 8,timename3,time3,timename4,time4 12, valuename1 13,value1 14,valuename2 15,value2 16,valuename3,value3 18 ,valuename4,value4 20
 
         endday = datetime.now()
@@ -347,21 +346,21 @@ class AllInOneGraph(RelativeLayout):
         c = connlog.cursor() # self.conlog.cursor()
         #print "between paint_line....sql...."
 
-        avg_days_avg = 4
-        avg_days_int = 1
-        print self.n_days, avg_days_avg,avg_days_int
+        avg_days_avg = 3
+        avg_days_int = 2
+        #print self.n_days, avg_days_avg,avg_days_int
         for dayn in xrange(avg_days_avg,self.n_days,avg_days_int):
-            print dayn
+            #print dayn
             sqltext = description['select_statement'].replace('n_days_start',str(dayn)).replace('n_days_stop',str(dayn - avg_days_avg))
-            print "--------paint_floating_average_select -sqltext:  ", sqltext
+            #print "--------paint_floating_average_select -sqltext:  ", sqltext
             #print sqltext
             c.execute(sqltext)
             result = c.fetchall()
             last_date = datetime(2010, 1, 1)
-            print "result",result
+            #print "result",result
             #print last_date, result
             for entry in result:
-                print "row:  ", entry
+                #print "row:  ", entry
                 try:
                     #entry = entry[1:]
                     #print "paint_line_select, entry: ", entry
@@ -425,7 +424,7 @@ class AllInOneGraph(RelativeLayout):
         c = connlog.cursor() # self.conlog.cursor()
         #print "between paint_line....sql...."
         sqltext = description['select_statement'].replace('n_days',str(self.n_days)) # "SELECT * FROM log WHERE ((time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days')) AND (button_id=" + str(description['button_id']) + "));"
-        print "--------sqltext: ", sqltext
+        #print "--------sqltext: ", sqltext
         #print sqltext
         c.execute(sqltext)
         result = c.fetchall()
@@ -437,7 +436,7 @@ class AllInOneGraph(RelativeLayout):
                 #entry = entry[1:]
                 #print "paint_line_select, entry: ", entry
                 #print entry["value"]
-                print "paint line select.. result:", entry
+                #print "paint line select.. result:", entry
                 date1 = datetime.strptime(str(entry['time1']), "%Y-%m-%d %H:%M")
                 if description['zeroifnot']:
                     if description['type'] == "select":
@@ -458,7 +457,7 @@ class AllInOneGraph(RelativeLayout):
                 value = float(entry['value']) # self.get_value_from_log2_entry(entry, entry['valuename1'])
                 #print "minmax,value...:", min,max,value,entry
                 x=offset_x + available_width / float(max-min) * (value - min)
-                print "###", entry['text'], "offset: ", offset_x,"max,min: ", (max,min,), "value: ", value, "x: ",x, available_width
+                #print "###", entry['text'], "offset: ", offset_x,"max,min: ", (max,min,), "value: ", value, "x: ",x, available_width
                 #determine y: from the date. like in paint_all:
                 y = self.get_pos_y_from_date(date1,date1.hour/24.0)
                 #print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
@@ -527,7 +526,7 @@ class AllInOneGraph(RelativeLayout):
                 date1x = datetime(date1x.year,date1x.month,date1x.day+1, 0, 4)
 
     def paint_event_label(self,date1,entry,label_extra_offset_y):
-        print "paint label...", entry
+        #print "paint label...", entry
         x1 = self.get_pos_x_for_mainchart(date1)
         y1 = self.get_pos_y_from_date(date1,relative_pos_on_day=0.0)
         txt=str(entry['entryname']+": " + str(entry['value1']) + " " + str(entry['value2']) + " " + str(entry['value3']) + str(entry['value4']))
@@ -543,8 +542,7 @@ class AllInOneGraph(RelativeLayout):
     def on_press_label(self,object,touch=None):
         #print "- obj:",object,"obj.pos: ", object.pos, object.size," touch: ", touch
         if object.collide_point(*touch.pos):
-            print "label pressed! ",touch, "--", touch.x,touch.y, "..xy|  pos:", touch.pos,"bla: ",object, object.text
-
+            #print "label pressed! ",touch, "--", touch.x,touch.y, "..xy|  pos:", touch.pos,"bla: ",object, object.text
             bv.clear_widgets()
             ev = EnterView2(entry=object.entry)
             #ev.parent_button_view=self
