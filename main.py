@@ -5,6 +5,7 @@ from kivy.uix.button import Button
 from kivy.uix.widget import Widget
 from kivy.uix.actionbar import ActionBar,ActionButton,ActionView
 from kivy.uix.modalview import ModalView
+from kivy.uix.popup import Popup
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.stacklayout import StackLayout
@@ -35,8 +36,8 @@ import sqlite3
 connlog = None
 bv = None
 
-n_days = 6
-graph_size = (1200,900)
+n_days = 8
+graph_size = (sp(1700),sp(2400))
 
 kivy.require('1.0.7')
 
@@ -51,19 +52,18 @@ class startGraph(BoxLayout):
     def __init__(self, **kwargs):
         super(startGraph, self).__init__(**kwargs)
         self.orientation = 'vertical'
-        self.log_def={'n_days':5, 'size':(1400,1200), 'endday':datetime.now(),'font_size':11}
+        self.log_def={'n_days':7, 'size':(sp(1500),sp(1900)), 'endday':datetime.now(),'font_size':11}
         self.clear_widgets()
 
         label_text= Label()
         label_text.text = 'Show Graph'
         self.add_widget(label_text)
 
-
         slider_wid = CustomKnob() #CustomSlider()
         slider_wid.value = graph_size[0]
         slider_wid.ltext = 'width'
         slider_wid.min = 0
-        slider_wid.max = 3000
+        slider_wid.max = 3500
         self.add_widget(slider_wid)
         self.slider_width = slider_wid
 
@@ -71,7 +71,7 @@ class startGraph(BoxLayout):
         slider_wid.value = graph_size[1]
         slider_wid.ltext = 'height'
         slider_wid.min = 0
-        slider_wid.max = 3000
+        slider_wid.max = 4000
         self.add_widget(slider_wid)
         self.slider_heigth = slider_wid
 
@@ -84,11 +84,11 @@ class startGraph(BoxLayout):
         self.slider_days = slider_wid
 
         lines = self.get_linedefs()
-        print lines
+        #print lines
         i_lines = 0
         self.checklines=[]
         for linedef in lines:
-            if i_lines % 4 == 0:
+            if i_lines % 3 == 0:
                 try:
                     self.add_widget(outer_box)
                     outer_box = BoxLayout()
@@ -109,7 +109,7 @@ class startGraph(BoxLayout):
             else:
                 checkline.active = True
             boxlay.add_widget(checkline)
-            label_line = Label(text=linedef['name'])
+            label_line = Label(text=linedef['name'],font_size=sp(10))
             boxlay.add_widget(label_line)
             outer_box.add_widget(boxlay)
             self.checklines.append(checkline)
@@ -540,14 +540,15 @@ class AllInOneGraph(RelativeLayout):
         self.add_widget(label_startstop)
 
     def on_press_label(self,object,touch=None):
-        #print "- obj:",object,"obj.pos: ", object.pos, object.size," touch: ", touch
         if object.collide_point(*touch.pos):
             #print "label pressed! ",touch, "--", touch.x,touch.y, "..xy|  pos:", touch.pos,"bla: ",object, object.text
-            bv.clear_widgets()
+            #bv.clear_widgets()
+            #popup = Popup(title='Test popup', content=Label(text='Hello world'), size_hint=(0.95,0.8))
+            #popup.open()
+            #return 0
             ev = EnterView2(entry=object.entry)
-            #ev.parent_button_view=self
-            bv.add_widget(ev)
-
+            popup = Popup(title=object.entry['categories'], content=ev,size_hint=(0.95,0.8))
+            popup.open()
 
     def paint_startstop_event(self,entry,date1,label_extra_offset_y):
         date2 = datetime.strptime(str(entry['time2']),"%Y-%m-%d %H:%M")
@@ -556,7 +557,6 @@ class AllInOneGraph(RelativeLayout):
         col = self.rgb_from_string(str(entry['entryname']))
         self.paint_rectangle_for_several_days(date1,date2,col)
         self.paint_event_label(date1,entry,label_extra_offset_y)
-
 
     def paint_4times(self, entry,date1,label_extra_offset_y):
         date2 = datetime.strptime(str(entry['time2']), "%Y-%m-%d %H:%M")
@@ -573,13 +573,11 @@ class AllInOneGraph(RelativeLayout):
         self.paint_event_label(date1,entry,label_extra_offset_y)
         #print str(entry[1]),sp(12),(x1,y1)
 
-
     def paintAll(self):
         log_def = self.log_def
         endday=self.endday
         self.paint_hour_axis()
         self.paint_date_axis()
-
         #extra-offset: so that the labels dont overlap
         label_extra_offset_y=0
         print "before paint_all...sql....1"
@@ -909,6 +907,7 @@ class EnterView2(BoxLayout):
     value_sliders = []
     text_input = None
     note_input = None
+    entry = None
 
     def __init__(self, **kwargs):
         super(EnterView2, self).__init__(**kwargs)
@@ -940,6 +939,12 @@ class EnterView2(BoxLayout):
             else:
                 label_text.text = '_no text available_'
             self.add_widget(label_text)
+
+            #if 'textfield' in self.dict:
+            #    if self.dict['textfield']:
+            self.note_input=TextInput()
+            self.add_widget(self.note_input)
+            #----------
 
             i = 0
             for date in self.dict['calendars']:
@@ -985,12 +990,6 @@ class EnterView2(BoxLayout):
                 self.add_widget(slider_wid)
                 self.value_sliders.append(slider_wid)
 
-            #if 'textfield' in self.dict:
-            #    if self.dict['textfield']:
-            self.note_input=TextInput()
-            self.add_widget(self.note_input)
-            #----------
-
             bt_ok = Button()
             bt_ok.text = "OK"
             bt_ok.bind(on_press=self.log_entry)
@@ -1019,6 +1018,13 @@ class EnterView2(BoxLayout):
 
             self.add_widget(label_text)
 
+
+            #if 'textfield' in self.dict:
+            #    if self.dict['textfield']:
+            self.note_input = TextInput()
+            self.note_input.text = entry['note']
+            self.add_widget(self.note_input)
+            #----------
 
             cal = DateSlider(text=entry['timename1'], timestring=entry['time1'])
             self.add_widget(cal)
@@ -1049,21 +1055,14 @@ class EnterView2(BoxLayout):
                 except Exception, e:
                     Logger.error(str(ival) + ", no more sliders...:" + str(e))
 
-            #if 'textfield' in self.dict:
-            #    if self.dict['textfield']:
-            self.note_input = TextInput()
-            self.note_input.text = entry['note']
-            self.add_widget(self.note_input)
-            #----------
-
             bt_ok = Button()
             bt_ok.text = "OK"
             bt_ok.bind(on_press=self.log_entry)
             self.add_widget(bt_ok)
-            bt_cancel = Button()
-            bt_cancel.text = "cancel"
-            bt_cancel.bind(on_press=self.cancelf)
-            self.add_widget(bt_cancel)
+            #bt_cancel = Button()
+            #bt_cancel.text = "cancel"
+            #bt_cancel.bind(on_press=self.cancelf)
+            #self.add_widget(bt_cancel)
         except Exception, e:
             try:
                 Logger.error("couldn't create enterView - delete button? " + str(e) + str(entry))
@@ -1077,6 +1076,7 @@ class EnterView2(BoxLayout):
             self.parent_button_view.clear_widgets()
             self.parent_button_view.show_first_level()
         except:
+            #self.dismiss()
             bv.clear_widgets()
             bv.show_first_level()
 
@@ -1099,8 +1099,10 @@ class EnterView2(BoxLayout):
         c = connlog.cursor()
         c.execute(sqltext)
         c.close()
-        bv.clear_widgets()
-        bv.show_first_level()
+        #bv.clear_widgets()
+        #bv.show_first_level()
+        popup = Popup(title='Database updated', content=Label(text='Database is updated. Tap outside to go back'),size_hint=(0.95,0.7))
+        popup.open()
 
     def log_entry(self,instance=None):
         try:
@@ -1145,7 +1147,8 @@ class EnterView2(BoxLayout):
             #self.parent_button_view.log.append(new_log_entry)
             #self.parent_button_view.log2.append(log2_entry)
             #print "log...  ", new_log_entry
-            self.cancelf()
+            if self.entry == None:
+                self.cancelf()
         except:
             self.log_update()
 
@@ -2110,7 +2113,8 @@ class QuantifyApp(App):
             copyfile(self.filename_db,exportpathfile_quantlog)
             copyfile(self.filename_buttondict,exportpathfile_button)
             Logger.info("exported to: " + exportpathfile_button + "; " + exportpathfile_quantlog)
-
+            popup = Popup(title='Database exported!', content=Label(text='Database is exportet. Tap outside to go back'),size_hint=(0.95,0.5))
+            popup.open()
         except Exception, e:
             Logger.error("export failed! "+ export_dir + ";   " + str(e))
 
@@ -2139,9 +2143,12 @@ class QuantifyApp(App):
 
                 #self.mainBL.bv.button_dict = self.mainBL.bv.button_dict = self.button_dict = self.loadJson(self.filename_buttondict)
                 self.load_files()
+                self.mainBL.button_dict = self.button_dict
                 self.mainBL.bv.show_first_level()
                 Logger.info("import successfull: " + latest_buttonlog_filename + "; imported quantlog: " + latest_quantlog_filename)
                 Logger.info("db: " + str(connlog))
+                popup = Popup(title='Database imported!', content=Label(text='Database is importet. Please restart app.'),size_hint=(0.95,0.5))
+                popup.open()
         except Exception, e:
             Logger.error("import failed! "+ export_dir + ";   " + str(e))
         finally:
