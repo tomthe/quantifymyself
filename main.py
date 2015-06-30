@@ -285,18 +285,22 @@ class AllInOneGraph(RelativeLayout):
 
     def test_paint_line_sql(self):
         self.floating_average_select()
+        print "test_paint_line_sql "
         try:
             sqltext = "SELECT * FROM lines " \
-                      "WHERE prio > 0" \
-                      "AND type <> 'select_floating_avg' " \
+                      "WHERE visible != 0 " \
+                      "AND type != 'select_floating_avg' " \
                       "ORDER BY prio DESC;"
             c = connlog.cursor() #self.conlog.cursor()
             c.execute(sqltext)
             result = c.fetchall()
+            print "result74: ", result
             for linedef in result:
+                print "resultii: ", linedef
                 if linedef['visible'] != 0:
                     self.paint_line_select(linedef)
-        except:
+        except Exception,e:
+            Logger.error("Test paint SQL| " + str(e) + sqltext)
             sqltext = '''CREATE TABLE IF NOT EXISTS `lines` (
                 `lineID`	INTEGER PRIMARY KEY AUTOINCREMENT,
                 `min`	INTEGER,
@@ -325,8 +329,8 @@ class AllInOneGraph(RelativeLayout):
             for linedef in result:
                 if linedef['visible'] != 0:
                     self.paint_floating_average_select(linedef)
-        except:
-            print "error hier..."
+        except Exception,e:
+            print "error hier...", str(e)
 
     def paint_floating_average_select(self, description):
         print "floating_average_select..............................................................qqqqqqqqq                    dfbdfb"
@@ -343,12 +347,13 @@ class AllInOneGraph(RelativeLayout):
         c = connlog.cursor() # self.conlog.cursor()
         #print "between paint_line....sql...."
 
-        avg_days = 7
-        print self.n_days, avg_days
-        for dayn in xrange(0,self.n_days,avg_days):
+        avg_days_avg = 4
+        avg_days_int = 1
+        print self.n_days, avg_days_avg,avg_days_int
+        for dayn in xrange(avg_days_avg,self.n_days,avg_days_int):
             print dayn
-            sqltext = description['select_statement'].replace('n_days_start',str(dayn)).replace('n_days_stop',str(dayn - avg_days))
-            print "--------sqltext: ", sqltext
+            sqltext = description['select_statement'].replace('n_days_start',str(dayn)).replace('n_days_stop',str(dayn - avg_days_avg))
+            print "--------paint_floating_average_select -sqltext:  ", sqltext
             #print sqltext
             c.execute(sqltext)
             result = c.fetchall()
@@ -361,21 +366,24 @@ class AllInOneGraph(RelativeLayout):
                     #entry = entry[1:]
                     #print "paint_line_select, entry: ", entry
                     #print entry["value"]
-                    date1 = datetime.strptime(str(entry['time1']), "%Y-%m-%d %H:%M")
+                    #date1 = datetime.strptime(str(entry['time1']), "%Y-%m-%d %H:%M")
+                    date1 = endday - timedelta(days=dayn)
+                    if entry[0] == None:
+                        value = 0
+                        txt = "0"
+                    else:
+                        value = float(entry['value']) # self.get_value_from_log2_entry(entry, entry['valuename1'])
+                        value = value / float(avg_days_avg)
+                        txt = str(round(float(str(value)),2))
+                        txt = str(entry["text"])+":     " + txt
 
-                    value = float(entry['value']) # self.get_value_from_log2_entry(entry, entry['valuename1'])
-                    #print "minmax,value...:", min,max,value,entry
                     x=offset_x + available_width / float(max-min) * (value - min)
-                    print "###", entry['text'], "offset: ", offset_x,"max,min: ", (max,min,), "value: ", value, "x: ",x, available_width
-                    #determine y: from the date. like in paint_all:
                     y = self.get_pos_y_from_date(date1,date1.hour/24.0)
                     #print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
 
                     with self.canvas:
                         Rectangle(pos=(x,y),size=(sp(8),sp(8)))
                         #Line(circle=(x,y,2),width=1)
-                    txt = str(round(float(str(value)),2))
-                    txt = str(entry["text"])+":     " + txt
                     y=y+sp(12)
                     label_singleevent = Label(text=txt,font_size=sp(11),size_hint=(None,None),size=(0,0),pos=(x,y))
                     self.add_widget(label_singleevent)
@@ -383,13 +391,16 @@ class AllInOneGraph(RelativeLayout):
                     points.extend((x,y))
 
                 except Exception, e:
-                    Logger.error("Paint-line-log-error" + str(e) + str(entry))
-            try:
-                label_linename = Label(text=description['name'],font_size=sp(16),size_hint=(None,None),size=(0,0),pos=(x,y-sp(26)))
-                self.add_widget(label_linename)
-                self.width += description['width']
-            except:
-                print "hohohoooh"
+                    #todo: ein punkt am richtigen datetime, mit value=0 hinzufuegen:
+                    #das richtige datum: letzte datum - avg_days days
+                    #daraus y- aus value=0 dann x berechnen
+                    Logger.error("Paint-line-log-error_4" + str(e) + str(entry) + str(entry[0])+ str(entry[1]))
+        try:
+            self.width += description['width']
+            label_linename = Label(text=description['name'],font_size=sp(16),size_hint=(None,None),size=(0,0),pos=(x,y-sp(26)))
+            self.add_widget(label_linename)
+        except:
+            print "hohohoooh"
         with self.canvas:
             Color(0.3,0.6,1.0,2)
             Line(points=points,width=1.6)
@@ -426,6 +437,7 @@ class AllInOneGraph(RelativeLayout):
                 #entry = entry[1:]
                 #print "paint_line_select, entry: ", entry
                 #print entry["value"]
+                print "paint line select.. result:", entry
                 date1 = datetime.strptime(str(entry['time1']), "%Y-%m-%d %H:%M")
                 if description['zeroifnot']:
                     if description['type'] == "select":
@@ -463,7 +475,7 @@ class AllInOneGraph(RelativeLayout):
                 points.extend((x,y))
 
             except Exception, e:
-                Logger.error("Paint-line-log-error" + str(e) + str(entry))
+                Logger.error("Paint-line-log-error6" + str(e) + str(entry))
         label_linename = Label(text=description['name'],font_size=sp(16),size_hint=(None,None),size=(0,0),pos=(x,y-sp(26)))
         self.add_widget(label_linename)
         self.width += description['width']
@@ -515,12 +527,29 @@ class AllInOneGraph(RelativeLayout):
                 date1x = datetime(date1x.year,date1x.month,date1x.day+1, 0, 4)
 
     def paint_event_label(self,date1,entry,label_extra_offset_y):
+        print "paint label...", entry
         x1 = self.get_pos_x_for_mainchart(date1)
         y1 = self.get_pos_y_from_date(date1,relative_pos_on_day=0.0)
         txt=str(entry['entryname']+": " + str(entry['value1']) + " " + str(entry['value2']) + " " + str(entry['value3']) + str(entry['value4']))
         label_startstop = Label(text=txt, font_size=sp(12),size_hint=(None,None),size=(5,0),pos=(x1,y1+label_extra_offset_y))
+        #label_startstop = Label(text=txt, font_size=sp(12), pos=(x1,y1+label_extra_offset_y))
+        label_startstop.texture_update()
+        label_startstop.size = label_startstop.texture_size
+        label_startstop.bind(on_touch_down=self.on_press_label)
+        label_startstop.entry = entry
         label_extra_offset_y += sp(self.font_size)
         self.add_widget(label_startstop)
+
+    def on_press_label(self,object,touch=None):
+        #print "- obj:",object,"obj.pos: ", object.pos, object.size," touch: ", touch
+        if object.collide_point(*touch.pos):
+            print "label pressed! ",touch, "--", touch.x,touch.y, "..xy|  pos:", touch.pos,"bla: ",object, object.text
+
+            bv.clear_widgets()
+            ev = EnterView2(entry=object.entry)
+            #ev.parent_button_view=self
+            bv.add_widget(ev)
+
 
     def paint_startstop_event(self,entry,date1,label_extra_offset_y):
         date2 = datetime.strptime(str(entry['time2']),"%Y-%m-%d %H:%M")
@@ -621,15 +650,6 @@ class AllInOneGraph(RelativeLayout):
             Logger.error("rgb_from_string failed... string: '" + str(string) + "'; " +str(e) )
             r,g,b = 0.6,0.5,0.6
         return [r, g, b]
-
-    def on_touch_down(self,touch):
-        pass
-        #if self.collide_point(*touch.pos):
-            #print self.width, self.size, self.painted_width
-        #    if self.painted_width <=100:
-        #        self.paintAll()
-        #return True
-
 
 
 class QuantButton(Widget):
@@ -893,9 +913,18 @@ class EnterView2(BoxLayout):
     note_input = None
 
     def __init__(self, **kwargs):
+        super(EnterView2, self).__init__(**kwargs)
         self.calendars=[]
         self.value_sliders=[]
         self.categories=[]
+        print "init EnterView2 ", kwargs
+
+        if 'dict' in kwargs:
+            self.init_with_dict(kwargs)
+        else:
+            self.init_with_entry(kwargs['entry'])
+
+    def init_with_dict(self,kwargs):
         try:
             self.dict=kwargs['dict']
             if 'categories' in kwargs:
@@ -903,7 +932,6 @@ class EnterView2(BoxLayout):
             if 'parent_button_view' in kwargs:
                 self.parent_button_view=kwargs['parent_button_view']
             self.orientation='vertical'
-            super(EnterView2, self).__init__(**kwargs)
 
             self.clear_widgets()
             #print "build EnterView --- dict:    ", self.dict
@@ -978,57 +1006,150 @@ class EnterView2(BoxLayout):
             label = Label(text="couldn't create enterView - delete button? " + str(e) + str(self.dict))
             self.add_widget(label)
 
+    def init_with_entry(self, entry):
+        self.calendars=[]
+        self.value_sliders=[]
+        self.categories=[]
+        try:
+            self.entry = entry
+            self.categories = entry['categories']
+            self.orientation='vertical'
+            self.clear_widgets()
+
+            label_text = Label()
+            label_text.text = entry['entryname']
+
+            self.add_widget(label_text)
+
+
+            cal = DateSlider(text=entry['timename1'], timestring=entry['time1'])
+            self.add_widget(cal)
+            self.calendars.append(cal)
+            if entry['type'] in ['startstop', '4times']:
+                cal = DateSlider(text=entry['timename2'], timestring=entry['time2'])
+                self.add_widget(cal)
+                self.calendars.append(cal)
+                if entry['type'] == '4times':
+                    cal = DateSlider(text=entry['timename3'], timestring=entry['time3'])
+                    self.add_widget(cal)
+                    self.calendars.append(cal)
+                    cal = DateSlider(text=entry['timename4'], timestring=entry['time4'])
+                    self.add_widget(cal)
+                    self.calendars.append(cal)
+
+
+            for ival in xrange(1,5):
+                try:
+                    print '----------slid',ival,float(entry['value' + str(ival)]),entry['valuename' + str(ival)],float(entry['value' + str(ival)]) * 0.4
+                    slider_wid = CustomKnob() #CustomSlider()
+                    slider_wid.value = float(entry['value' + str(ival)])
+                    slider_wid.ltext= entry['valuename' + str(ival)]
+                    slider_wid.min = float(entry['value' + str(ival)]) * 0.4
+                    slider_wid.max = float(entry['value' + str(ival)] + 3) * 2.4
+                    self.add_widget(slider_wid)
+                    self.value_sliders.append(slider_wid)
+                except Exception, e:
+                    Logger.error(str(ival) + ", no more sliders...:" + str(e))
+
+            #if 'textfield' in self.dict:
+            #    if self.dict['textfield']:
+            self.note_input = TextInput()
+            self.note_input.text = entry['note']
+            self.add_widget(self.note_input)
+            #----------
+
+            bt_ok = Button()
+            bt_ok.text = "OK"
+            bt_ok.bind(on_press=self.log_entry)
+            self.add_widget(bt_ok)
+            bt_cancel = Button()
+            bt_cancel.text = "cancel"
+            bt_cancel.bind(on_press=self.cancelf)
+            self.add_widget(bt_cancel)
+        except Exception, e:
+            try:
+                Logger.error("couldn't create enterView - delete button? " + str(e) + str(entry))
+                #label = Label(text="couldn't create enterView - delete button? " + str(e) + str(self.entry))
+                #self.add_widget(label)
+            except:
+                print "aaaaaaahhhhhhhhhh"
+
     def cancelf(self,instance=None):
         try:
             self.parent_button_view.clear_widgets()
             self.parent_button_view.show_first_level()
         except:
-            self.parent.clear_widgets()
-            self.parent.show_first_level()
+            bv.clear_widgets()
+            bv.show_first_level()
+
+    def log_update(self):
+        entry = self.entry
+        print entry
+        i = 0
+        sqltext = "UPDATE log " \
+                  "SET note='" + self.note_input.text + "' "
+        for calender in self.calendars:
+            i += 1
+            sqltext += ", time" + str(i) + "='" + calender.get_datetime_string() + "' "
+        i=0
+        for slider in self.value_sliders:
+            i += 1
+            sqltext += ", value" + str(i) + "='" + str(slider.value) + "' "
+
+        sqltext += "WHERE id = " + entry['id'] + "; " #" AND time1 = " + entry['time1'] + "; "
+        print sqltext
+        c = connlog.cursor()
+        c.execute(sqltext)
+        c.close()
+        bv.clear_widgets()
+        bv.show_first_level()
 
     def log_entry(self,instance=None):
-        new_log_entry = {}
-        #ID = randint(0,999999) #str(randint(100,9999))
-        #new_log_entry['log_id']=ID
-        datetimes=[]
-        for datetime in self.calendars:
-            datetimes_new = {}
-            datetimes_new['timename']=datetime.text
-            datetimes_new['datetime']=datetime.get_datetime_string()
-            datetimes.append(datetimes_new)
-        new_log_entry['datetimes'] = datetimes
+        try:
+            new_log_entry = {}
+            #ID = randint(0,999999) #str(randint(100,9999))
+            #new_log_entry['log_id']=ID
+            datetimes=[]
+            for datetime in self.calendars:
+                datetimes_new = {}
+                datetimes_new['timename']=datetime.text
+                datetimes_new['datetime']=datetime.get_datetime_string()
+                datetimes.append(datetimes_new)
+            new_log_entry['datetimes'] = datetimes
 
-        values=[]
-        for val in self.value_sliders:
-            val_new = {}
-            val_new['valname']=val.ltext
-            val_new['value']=val.value
-            values.append(val_new)
-        new_log_entry['values'] = values
-        new_log_entry['categories']=self.categories
+            values=[]
+            for val in self.value_sliders:
+                val_new = {}
+                val_new['valname']=val.ltext
+                val_new['value']=val.value
+                values.append(val_new)
+            new_log_entry['values'] = values
+            new_log_entry['categories']=self.categories
 
-        if 'text' in self.dict:
-            new_log_entry['entryname'] = str(self.dict['text'])
-        else:
-            new_log_entry['text'] = "None"
-        if 'type' in self.dict:
-            new_log_entry['type'] = str(self.dict['type'])
-        if 'button_id' in self.dict:
-            new_log_entry['button_id']=self.dict['button_id']
+            if 'text' in self.dict:
+                new_log_entry['entryname'] = str(self.dict['text'])
+            else:
+                new_log_entry['text'] = "None"
+            if 'type' in self.dict:
+                new_log_entry['type'] = str(self.dict['type'])
+            if 'button_id' in self.dict:
+                new_log_entry['button_id']=self.dict['button_id']
 
-        new_log_entry['note'] = self.note_input.text
+            new_log_entry['note'] = self.note_input.text
 
-        catstring=''
-        for category in self.categories:
-            catstring += category + '|'
+            catstring=''
+            for category in self.categories:
+                catstring += category + '|'
 
-        log2_entry = self.log_entry_2_log2(new_log_entry)
-        self.add_line_to_db_from_log2_entry(log2_entry)
+            log2_entry = self.log_entry_2_log2(new_log_entry)
+            self.add_line_to_db_from_log2_entry(log2_entry)
 
-        #self.parent_button_view.log.append(new_log_entry)
-        #self.parent_button_view.log2.append(log2_entry)
-        #print "log...  ", new_log_entry
-        self.cancelf()
+            #self.parent_button_view.log.append(new_log_entry)
+            #self.parent_button_view.log2.append(log2_entry)
+            #print "log...  ", new_log_entry
+            self.cancelf()
+        except:
+            self.log_update()
 
     def log_entry_2_log2(self,log1):
         #converts a dict-log-entry into a list-based log-entry
