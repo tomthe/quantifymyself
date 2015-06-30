@@ -41,7 +41,7 @@ graph_size = (sp(1700),sp(2400))
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.18"
+__version__ = "0.3.33"
 
 
 class startGraph(BoxLayout):
