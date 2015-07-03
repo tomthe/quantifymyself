@@ -37,7 +37,8 @@ connlog = None
 bv = None
 
 n_days = 8
-graph_size = (sp(1700),sp(2400))
+graph_size = (sp(960),sp(1200))
+#sp-factor on phone is 5100 -7200 wich was1700,2400
 
 kivy.require('1.0.7')
 
@@ -181,7 +182,7 @@ class startGraph(BoxLayout):
         graph_size = (int(self.slider_width.value), int(self.slider_heigth.value))
 
 
-        log_def = {"n_days":n_days,'size':graph_size, 'size_inside':graph_size, 'endday':datetime.now(),
+        log_def = {"n_days":n_days, 'size':graph_size, 'size_inside':graph_size, 'endday':datetime.now(),
                    'paint_bezeir_lines':False}
 
         if self.cb_bezier.active:
@@ -253,6 +254,25 @@ class AllInOneGraph(RelativeLayout):
             label_date.pos = (self.get_pos_x_for_mainchart_from_hour(ihour),self.offset_y)#(self.offset_x + ihour*3600*self.second_width, self.offset_y)
             self.add_widget(label_date)
 
+    def paint_date_axis(self):
+        i = 0
+        for iday in xrange(self.n_days):
+            i+=1
+            date1 = self.endday - timedelta(days=iday)
+            label_date = Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
+            label_date.pos = (20, self.get_pos_y_from_date(date1, 0.5))
+            self.add_widget(label_date)
+            if i % 7 == 0:
+                with self.canvas:
+                    Color(0.8,0.99,0.6,1)
+                    points = [0,self.get_pos_y_from_date(date1,0.0),self.width*3,self.get_pos_y_from_date(date1,0.0)]
+                    Line(points=points,width=1.0)
+        for iday in xrange(self.n_days):
+            date1 = self.endday - timedelta(days=iday)
+            label_date = Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
+            label_date.pos = (self.width + sp(20), self.get_pos_y_from_date(date1, 0.5))
+            self.add_widget(label_date)
+        self.width +=label_date.texture_size[1] + sp(20)
 
     def get_hours_from_2_dates(self,date1,date2):
         return (date2-date1).seconds / float(3600)
@@ -284,12 +304,10 @@ class AllInOneGraph(RelativeLayout):
             return entry[14]
 
     def test_paint_line_sql(self):
-        self.floating_average_select()
         print "test_paint_line_sql "
         try:
             sqltext = "SELECT * FROM lines " \
                       "WHERE visible != 0 " \
-                      "AND type != 'select_floating_avg' " \
                       "ORDER BY prio DESC;"
             c = connlog.cursor() #self.conlog.cursor()
             c.execute(sqltext)
@@ -298,9 +316,12 @@ class AllInOneGraph(RelativeLayout):
             for linedef in result:
                 #print "resultii: ", linedef
                 if linedef['visible'] != 0:
-                    self.paint_line_select(linedef)
+                    if linedef['type'] == 'select_floating_avg':
+                        self.paint_floating_average_select(linedef)
+                    else:
+                        self.paint_line_select(linedef)
         except Exception,e:
-            Logger.error("Test paint SQL| " + str(e) + sqltext)
+            Logger.error("Test paint SQL|  e: " + str(e) + " | sql:   " + sqltext)
             sqltext = '''CREATE TABLE IF NOT EXISTS `lines` (
                 `lineID`	INTEGER PRIMARY KEY AUTOINCREMENT,
                 `min`	INTEGER,
@@ -344,28 +365,19 @@ class AllInOneGraph(RelativeLayout):
         available_width= int(description['width'])
         min,max = description['min'], description['max']
         c = connlog.cursor() # self.conlog.cursor()
-        #print "between paint_line....sql...."
 
         avg_days_avg = 3
         avg_days_int = 2
-        #print self.n_days, avg_days_avg,avg_days_int
         for dayn in xrange(avg_days_avg,self.n_days,avg_days_int):
-            #print dayn
             sqltext = description['select_statement'].replace('n_days_start',str(dayn)).replace('n_days_stop',str(dayn - avg_days_avg))
             #print "--------paint_floating_average_select -sqltext:  ", sqltext
             #print sqltext
             c.execute(sqltext)
             result = c.fetchall()
             last_date = datetime(2010, 1, 1)
-            #print "result",result
-            #print last_date, result
             for entry in result:
                 #print "row:  ", entry
                 try:
-                    #entry = entry[1:]
-                    #print "paint_line_select, entry: ", entry
-                    #print entry["value"]
-                    #date1 = datetime.strptime(str(entry['time1']), "%Y-%m-%d %H:%M")
                     date1 = endday - timedelta(days=dayn)
                     if entry[0] == None:
                         value = 0
@@ -378,15 +390,12 @@ class AllInOneGraph(RelativeLayout):
 
                     x=offset_x + available_width / float(max-min) * (value - min)
                     y = self.get_pos_y_from_date(date1,date1.hour/24.0)
-                    #print (endday-date1).days,(endday-date1).seconds,"; s/24:", (float((endday-date1).seconds) / 60 / 60/24), "x,y: ", x,y, "entry: ", entry
-
                     with self.canvas:
                         Rectangle(pos=(x,y),size=(sp(8),sp(8)))
                         #Line(circle=(x,y,2),width=1)
                     y=y+sp(12)
                     label_singleevent = Label(text=txt,font_size=sp(11),size_hint=(None,None),size=(0,0),pos=(x,y))
                     self.add_widget(label_singleevent)
-                    #points.append((x,y))
                     points.extend((x,y))
 
                 except Exception, e:
@@ -474,7 +483,7 @@ class AllInOneGraph(RelativeLayout):
                 points.extend((x,y))
 
             except Exception, e:
-                Logger.error("Paint-line-log-error6" + str(e) + str(entry))
+                Logger.error("Paint-line-log-error6 " + str(e) + str(entry))
         label_linename = Label(text=description['name'],font_size=sp(16),size_hint=(None,None),size=(0,0),pos=(x,y-sp(26)))
         self.add_widget(label_linename)
         self.width += description['width']
@@ -492,13 +501,14 @@ class AllInOneGraph(RelativeLayout):
     def paint_singleevent(self,entry,date,label_extra_offset_y):
         #paint circle and label
         x = self.get_pos_x_for_mainchart(date)
-        y = self.get_pos_y_from_date(date)#self.offset_yd + (endday-date1).days * self.day_height
+        y = self.get_pos_y_from_date(date) - self.day_height / 4#self.offset_yd + (endday-date1).days * self.day_height
         #print "paint singleevent: x,y",x,y, entry[16], " - entry 18: ", entry[18]
         col = self.rgb_from_string(str(entry["entryname"]))
         with self.canvas:
             #Line(rectangle=(x,y,day_height,day_height),width=3)
             Color(col[0],col[1],col[2])
-            Rectangle(pos=(x,y),size=(sp(10),sp(10)))
+            size = (self.day_height/3, self.day_height / 2)
+            Rectangle(pos=(x,y),size=size)
             #Line(circle=(x,y,sp(10)),width=sp(3))
         self.paint_event_label(date,entry,label_extra_offset_y)
 
@@ -530,14 +540,15 @@ class AllInOneGraph(RelativeLayout):
         x1 = self.get_pos_x_for_mainchart(date1)
         y1 = self.get_pos_y_from_date(date1,relative_pos_on_day=0.0)
         txt=str(entry['entryname']+": " + str(entry['value1']) + " " + str(entry['value2']) + " " + str(entry['value3']) + str(entry['value4']))
-        label_startstop = Label(text=txt, font_size=sp(12),size_hint=(None,None),size=(5,0),pos=(x1,y1+label_extra_offset_y))
-        #label_startstop = Label(text=txt, font_size=sp(12), pos=(x1,y1+label_extra_offset_y))
-        label_startstop.texture_update()
-        label_startstop.size = label_startstop.texture_size
-        label_startstop.bind(on_touch_down=self.on_press_label)
-        label_startstop.entry = entry
-        label_extra_offset_y += sp(self.font_size)
-        self.add_widget(label_startstop)
+        if label_extra_offset_y != -1:
+            label_startstop = Label(text=txt, font_size=sp(12),size_hint=(None,None),size=(5,0),pos=(x1,y1+label_extra_offset_y))
+            #label_startstop = Label(text=txt, font_size=sp(12), pos=(x1,y1+label_extra_offset_y))
+            label_startstop.texture_update()
+            label_startstop.size = label_startstop.texture_size
+            label_startstop.bind(on_touch_down=self.on_press_label)
+            label_startstop.entry = entry
+            label_extra_offset_y += sp(self.font_size)
+            self.add_widget(label_startstop)
 
     def on_press_label(self,object,touch=None):
         if object.collide_point(*touch.pos):
@@ -600,18 +611,22 @@ class AllInOneGraph(RelativeLayout):
                     continue
 
                 #extra-offset: so that the labels dont overlap
-                if label_extra_offset_y > self.day_height /2 + sp(self.font_size):
-                    label_extra_offset_y=0
+
+                if self.day_height < 1.6 * sp(self.font_size):
+                    label_extra_offset_y = -1
+                #elif self.day_height < 1.8 * sp(self.font_size):
+                #    label_extra_offset_y = 0
                 else:
-                    label_extra_offset_y += sp(self.font_size)
+                    if label_extra_offset_y > self.day_height / 2.0 - (sp(self.font_size) / 2.0):
+                        label_extra_offset_y = 0
+                    else:
+                        label_extra_offset_y += 0.9 * sp(self.font_size)
 
                 if entry['type']=='singleevent':
                     self.paint_singleevent(entry,date1,label_extra_offset_y)
                 elif entry['type']=='startstop':
-                    #print entry
                     self.paint_startstop_event(entry,date1,label_extra_offset_y)
                 elif entry['type']=='4times':
-                    #print entry
                     self.paint_4times(entry,date1,label_extra_offset_y)
             except Exception,e:
                 print "Error painting event:  ", str(e)
@@ -629,13 +644,6 @@ class AllInOneGraph(RelativeLayout):
 
     def get_pos_x_for_mainchart_from_hour(self,hour):
         return self.offset_x + (hour*3600) * self.second_width
-
-    def paint_date_axis(self):
-        for iday in xrange(self.n_days):
-            date1 = self.endday - timedelta(days=iday)
-            label_date = Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
-            label_date.pos = (20, self.get_pos_y_from_date(date1, 0.5))
-            self.add_widget(label_date)
 
     def rgb_from_string(self,string):
         try:
