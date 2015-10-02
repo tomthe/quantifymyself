@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import kivy
 from kivy.graphics import Rectangle,Line,Color
 from kivy.uix.label import Label
@@ -42,7 +43,7 @@ graph_size = (sp(960),sp(1200))
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.34"
+__version__ = "0.3.35"
 
 
 class startGraph(BoxLayout):
@@ -199,6 +200,7 @@ class AllInOneGraph(RelativeLayout):
     offset_y=sp(50)
     n_days=10
     n_seconds=24*60*60
+    only_selected = False
 
     def __init__(self, **kwargs):
         #self.entry=kwargs['entry']
@@ -211,6 +213,11 @@ class AllInOneGraph(RelativeLayout):
                 endday = self.log_def['endday']
             except:
                 self.log_def['endday'] = datetime.now()
+            try:
+                if 'select_button_id' in self.log_def:
+                    self.only_selected = True
+            except:
+                print "FEHLER beim select_button_id-zugriff..."
         except:
             print "log_def failed - AllInOneGraph  "
             try:
@@ -603,6 +610,9 @@ class AllInOneGraph(RelativeLayout):
         print "before paint_all...sql....1"
         c = connlog.cursor() # self.conlog.cursor()
         sqltext = "SELECT * FROM log WHERE time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days');"
+        if self.only_selected:
+            sqltext = "SELECT * FROM log WHERE (time1 between date('now', '-" + str(self.n_days) + " days') and date('now', '+1 days')) AND button_id =" + str(log_def['select_button_id']) + ";"
+
         c.execute(sqltext)
         #print "before paint_line...after execute.sql....",sqltext
         result = c.fetchall()
@@ -1563,9 +1573,33 @@ class ButtonOptionsView(BoxLayout):
         '''build the menu....'''
 
         print "build view....."
+        bt = Button(text="paint")
+        bt.bind(on_press=self.paint)
+        self.add_widget(bt)
         #options:
 
+    def paint(self,instance,value=None):
+        #print "bubububub", self.button_dict
+        self.clear_widgets()
+        global n_days
+        global graph_size
+        #global last_button_id
 
+        log_def = {'n_days':n_days, 'size':graph_size, 'size_inside':graph_size, 'endday':datetime.now(),
+                   'paint_bezeir_lines':False}
+
+        if isinstance(self.button_dict,dict):
+            print "Eintrags-Knopf"
+            log_def['select_button_id'] = self.button_dict['button_id']
+        else:
+            print "kategorie-Knopf"
+            log_def['select_categorie'] = self.button_dict[0]['text']
+            print "kategorien funktionieren noch nicht richtig!!!"
+        relatlayout = ScrollableAllInOneGraph(log_def=log_def)
+        relatlayout.pos=self.pos
+        relatlayout.size=self.size
+        self.add_widget(relatlayout )
+        self.do_layout()
 
 
 class ButtonView(StackLayout):
@@ -1602,9 +1636,13 @@ class ButtonView(StackLayout):
         self.add_add_button(dict=self.button_dict)
 
     def edit_button(self,instance,value=None):
-        print "edit_button....",instance,value
+        print "edit_button....",instance,value, self.button_dict
+        print "..."
+        print "instance.", instance.dict
+        print "issublcall...",isinstance(instance.dict, dict)
         self.clear_widgets()
-        bov = ButtonOptionsView(button_dict=self.button_dict,app=self.app)
+        bov = ButtonOptionsView(button_dict=instance.dict,app=self.app)
+
         self.add_widget(bov)
 
 
@@ -1624,6 +1662,7 @@ class ButtonView(StackLayout):
             else:
                 bt = QuantButton(text= button['text'],dict=button,type='log')
             bt.bind(on_press=self.buttonpress)
+            bt.bind(on_long_press=self.edit_button)
             bt.size_hint = (None,None)
             bt.size = [self.width/2-5, self.height /6-5]
             self.add_widget(bt)
