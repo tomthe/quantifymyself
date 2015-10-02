@@ -231,6 +231,8 @@ class AllInOneGraph(RelativeLayout):
 
         self.size = self.log_def['size_inside']#(600,600)
         self.init_variables()
+        if self.only_selected:
+            self.paint_line_one_entry(button_id=self.log_def['select_button_id'])
 
     def init_variables(self):
         self.n_days = self.log_def['n_days']
@@ -352,6 +354,30 @@ class AllInOneGraph(RelativeLayout):
             c = connlog.cursor() # self.conlog.cursor()
             c.execute(sqltext)
 
+    def paint_line_one_entry(self,button_id):
+        #create linedefs and call self.paint_line_select(linedef)
+
+        linedef = {}
+        linedef['min'] = 0
+        linedef['max'] = 10
+        linedef['width'] = 340
+        linedef['prio'] = 2
+        linedef['zeroifnot'] = 0
+        linedef['group'] = 0
+        linedef['type'] = 'select'
+        linedef['visible'] = 1
+        for i in xrange(1,5):
+            linedef['name'] = "value" + str(i)
+            linedef['select_statement'] = """
+SELECT entryname as name, categories, time1, valuename1, value1, value""" + str(i) + """  as value, valuename""" + str(i) + """  AS text
+FROM log WHERE button_id = """ + str(button_id) + """
+AND (time1 between date('now', '-n_days days') and date('now', '+2 days'))
+ORDER BY datetime(time1);
+"""
+            self.paint_line_select(linedef)
+
+
+
     def floating_average_select(self):
         try:
             sqltext = "SELECT * FROM lines " \
@@ -453,6 +479,16 @@ class AllInOneGraph(RelativeLayout):
         result = c.fetchall()
         last_date = datetime(2010, 1, 1)
         #print last_date, result
+
+        #get min and max:
+        min = result[0]['value']
+        max = result[0]['value']
+        for entry in result:
+            if entry['value'] < min:
+                min = entry['value']
+            if entry['value'] > max:
+                max = entry['value']
+
         for entry in result:
                 #print "row:  ", entry
             try:
@@ -497,20 +533,23 @@ class AllInOneGraph(RelativeLayout):
                 points.extend((x,y))
 
             except Exception, e:
-                Logger.error("Paint-line-log-error6 " + str(e) + str(entry))
-        label_linename = Label(text=description['name'],font_size=sp(16),size_hint=(None,None),size=(0,0),pos=(x,y-sp(26)))
-        self.add_widget(label_linename)
-        self.width += description['width']
-        #print points, "points....<---"
-        with self.canvas:
-            Color(0.3,0.6,1.0,2)
-            Line(points=points,width=1.6)
-            try:
-                if self.log_def['paint_bezier_lines']:
-                    Color(10,1.0,0.2,2.2)
-                    Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
-            except:
-                pass
+                Logger.error("Paint-line-log-error6 " + str(e) + str(entry['value']) + str(entry['text']))
+        try:
+            label_linename = Label(text=description['name'],font_size=sp(16),size_hint=(None,None),size=(0,0),pos=(x,y-sp(26)))
+            self.add_widget(label_linename)
+            self.width += description['width']
+            #print points, "points....<---"
+            with self.canvas:
+                Color(0.3,0.6,1.0,2)
+                Line(points=points,width=1.6)
+                try:
+                    if self.log_def['paint_bezier_lines']:
+                        Color(10,1.0,0.2,2.2)
+                        Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
+                except:
+                    pass
+        except:
+            print "error....joi"
 
     def paint_singleevent(self,entry,date,label_extra_offset_y):
         #paint circle and label
@@ -1573,6 +1612,13 @@ class ButtonOptionsView(BoxLayout):
         '''build the menu....'''
 
         print "build view....."
+        slider_wid = CustomKnob() #CustomSlider()
+        slider_wid.value = n_days
+        slider_wid.ltext = 'n days'
+        slider_wid.min = 1
+        slider_wid.max = 300
+        self.add_widget(slider_wid)
+        self.slider_days = slider_wid
         bt = Button(text="paint")
         bt.bind(on_press=self.paint)
         self.add_widget(bt)
@@ -1584,7 +1630,7 @@ class ButtonOptionsView(BoxLayout):
         global n_days
         global graph_size
         #global last_button_id
-
+        n_days = int(self.slider_days.value)
         log_def = {'n_days':n_days, 'size':graph_size, 'size_inside':graph_size, 'endday':datetime.now(),
                    'paint_bezeir_lines':False}
 
