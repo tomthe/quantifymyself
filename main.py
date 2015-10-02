@@ -42,7 +42,7 @@ graph_size = (sp(960),sp(1200))
 
 kivy.require('1.0.7')
 
-__version__ = "0.3.33"
+__version__ = "0.3.34"
 
 
 class startGraph(BoxLayout):
@@ -256,22 +256,29 @@ class AllInOneGraph(RelativeLayout):
 
     def paint_date_axis(self):
         i = 0
+        last_date_y_pos = 0
         for iday in xrange(self.n_days):
             i+=1
             date1 = self.endday - timedelta(days=iday)
             label_date = Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
             label_date.pos = (20, self.get_pos_y_from_date(date1, 0.5))
-            self.add_widget(label_date)
+            if label_date.pos[1] >= last_date_y_pos + sp(14):
+                self.add_widget(label_date)
+                last_date_y_pos = label_date.pos[1]
             if i % 7 == 0:
                 with self.canvas:
                     Color(0.8,0.99,0.6,1)
                     points = [0,self.get_pos_y_from_date(date1,0.0),self.width*3,self.get_pos_y_from_date(date1,0.0)]
                     Line(points=points,width=1.0)
+        last_date_y_pos = 0
         for iday in xrange(self.n_days):
             date1 = self.endday - timedelta(days=iday)
             label_date = Label(text=date1.strftime("%m-%d"),font_size=sp(13),size_hint=(None,None),size=(0,0))
             label_date.pos = (self.width + sp(20), self.get_pos_y_from_date(date1, 0.5))
-            self.add_widget(label_date)
+
+            if label_date.pos[1] >= last_date_y_pos + sp(14):
+                self.add_widget(label_date)
+                last_date_y_pos = label_date.pos[1]
         self.width +=label_date.texture_size[1] + sp(20)
 
     def get_hours_from_2_dates(self,date1,date2):
@@ -507,7 +514,7 @@ class AllInOneGraph(RelativeLayout):
         with self.canvas:
             #Line(rectangle=(x,y,day_height,day_height),width=3)
             Color(col[0],col[1],col[2])
-            size = (self.day_height/3, self.day_height / 2)
+            size = (sp(15), self.day_height / 2)
             Rectangle(pos=(x,y),size=size)
             #Line(circle=(x,y,sp(10)),width=sp(3))
         self.paint_event_label(date,entry,label_extra_offset_y)
@@ -528,12 +535,14 @@ class AllInOneGraph(RelativeLayout):
             self.paint_rectangle_for_two_datetimes(date1,date2,col)
         else:
             date1x=date1
-            #print "before-for ------ several_days...",date1,date2,range((date2-date1).days)
-            for iday in xrange((date2-date1).days):
-                #print "|| several_days...",iday,date1,date2
+            print "before-for ------ several_days...",date1,date2,range((date2.day-date1.day)),date2.day-date1.day,(date2-date1).days+1
+            for iday in xrange((date2-date1).days + 1):
+                print "|| several_days...",iday,date1,date2
                 date2x = datetime(date1x.year,date1x.month,date1x.day,23,58)
                 self.paint_rectangle_for_two_datetimes(date1x,date2x,col)
-                date1x = datetime(date1x.year,date1x.month,date1x.day+1, 0, 4)
+                date1x = datetime(date1x.year,date1x.month,date1x.day, 0, 4) + timedelta(days=1)
+
+            self.paint_rectangle_for_two_datetimes(date1x,date2,col)
 
     def paint_event_label(self,date1,entry,label_extra_offset_y):
         #print "paint label...", entry
@@ -718,7 +727,7 @@ class QuantButton(Widget):
 
     def on_long_press(self,instance):
         pass
-        #print "on_long_press", instance
+        print "on_long_press", instance
 
 
     def on_press(self,instance):
