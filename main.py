@@ -320,6 +320,8 @@ class AllInOneGraph(RelativeLayout):
             return entry[14]
 
     def test_paint_line_sql(self):
+        if self.only_selected:
+            return 0
         print "test_paint_line_sql "
         try:
             sqltext = "SELECT * FROM lines " \
@@ -369,14 +371,46 @@ class AllInOneGraph(RelativeLayout):
         for i in xrange(1,5):
             linedef['name'] = "value" + str(i)
             linedef['select_statement'] = """
-SELECT entryname as name, categories, time1, valuename1, value1, value""" + str(i) + """  as value, valuename""" + str(i) + """  AS text
+SELECT entryname as name, categories, time1, time2, time4, valuename1, value""" + str(i) + """  as value, valuename""" + str(i) + """  AS text
 FROM log WHERE button_id = """ + str(button_id) + """
 AND (time1 between date('now', '-n_days days') and date('now', '+2 days'))
 ORDER BY datetime(time1);
 """
-            self.paint_line_select(linedef)
+            time2,time4 = self.paint_line_select(linedef)
+
+        print "--------------------------------------timtimtitmtimtitm!'", time2,time4
+        print "--------------------------------------timtimtitmtimtitm!'", time2 is None, time4==''
 
 
+        if time4 !='':
+                linedef['name'] = "time23"
+                linedef['select_statement'] = """
+    SELECT  entryname, categories, time1, time2, time4, datetime(time3) - datetime(time2) as timediff,(strftime('%s',time3) - strftime('%s',time2))/3600.0 as value,   '|' AS text
+    FROM log WHERE button_id = """ + str(button_id) + """
+    AND (time1 between date('now', '-n_days days') and date('now', '+2 days'))
+    ORDER BY datetime(time1);
+    """
+                time2,time4 = self.paint_line_select(linedef)
+
+                linedef['name'] = "time14"
+                linedef['select_statement'] = """
+    SELECT  entryname, categories, time1, time2, time4, datetime(time4) - datetime(time1) as timediff,(strftime('%s',time4) - strftime('%s',time1))/3600.0 as value,  '|' AS text
+    FROM log WHERE button_id = """ + str(button_id) + """
+    AND (time1 between date('now', '-n_days days') and date('now', '+2 days'))
+    ORDER BY datetime(time1);
+    """
+                time2,time4 = self.paint_line_select(linedef)
+
+        if time2 !='':
+
+            linedef['name'] = "time12"
+            linedef['select_statement'] = """
+SELECT  entryname, categories, time1, time2, time4,  datetime(time2) - datetime(time1) as timediff,(strftime('%s',time2) - strftime('%s',time1))/3600.0 as value,  '|' AS text
+FROM log WHERE button_id = """ + str(button_id) + """
+AND (time1 between date('now', '-n_days days') and date('now', '+2 days'))
+ORDER BY datetime(time1);
+"""
+            time2,time4 = self.paint_line_select(linedef)
 
     def floating_average_select(self):
         try:
@@ -481,8 +515,16 @@ ORDER BY datetime(time1);
         #print last_date, result
 
         #get min and max:
-        min = result[0]['value']
-        max = result[0]['value']
+        try:
+            min = result[0]['value']
+            max = result[0]['value']
+            time4,time2 = result[0]['time4'],result[0]['time2']
+        except Exception, e:
+            min,max = 0,0
+            time4,time2 = '',''
+            Logger.error("Paint-line-log-error4.1 |" + str(e) + str(result[0]['value']) + " | " + str(result[0]) + sqltext)
+            return time2,time4
+
         for entry in result:
             if entry['value'] < min:
                 min = entry['value']
@@ -491,7 +533,7 @@ ORDER BY datetime(time1);
 
         for entry in result:
                 #print "row:  ", entry
-            try:
+            #try:
                 #entry = entry[1:]
                 #print "paint_line_select, entry: ", entry
                 #print entry["value"]
@@ -513,7 +555,11 @@ ORDER BY datetime(time1);
                                     points.extend((offset_x,self.get_pos_y_from_date(last_date,0.9)))
 
                 last_date = date1
-                value = float(entry['value']) # self.get_value_from_log2_entry(entry, entry['valuename1'])
+                try:
+                    value = float(entry['value']) # self.get_value_from_log2_entry(entry, entry['valuename1'])
+                except Exception, e:
+                    Logger.error("Paint-line-log-error6.1 " + str(e) + str(entry['value']) + str(entry['text']))
+                    return time2,time4
                 #print "minmax,value...:", min,max,value,entry
                 x=offset_x + available_width / float(max-min) * (value - min)
                 #print "###", entry['text'], "offset: ", offset_x,"max,min: ", (max,min,), "value: ", value, "x: ",x, available_width
@@ -532,8 +578,8 @@ ORDER BY datetime(time1);
                 #points.append((x,y))
                 points.extend((x,y))
 
-            except Exception, e:
-                Logger.error("Paint-line-log-error6 " + str(e) + str(entry['value']) + str(entry['text']))
+            #except Exception, e:
+                #Logger.error("Paint-line-log-error6 " + str(e) + str(entry['value']) + str(entry['text']))
         try:
             label_linename = Label(text=description['name'],font_size=sp(16),size_hint=(None,None),size=(0,0),pos=(x,y-sp(26)))
             self.add_widget(label_linename)
@@ -548,8 +594,10 @@ ORDER BY datetime(time1);
                         Line(bezier=points,width=1.9 )#,bezier_precision=100,cap='None')
                 except:
                     pass
-        except:
-            print "error....joi"
+        except Exception, e:
+            Logger.error("Paint-line-log-error7 " + str(e) + str(entry['value']) + str(entry['text']))
+
+        return time2,time4
 
     def paint_singleevent(self,entry,date,label_extra_offset_y):
         #paint circle and label
@@ -766,7 +814,7 @@ class QuantButton(Widget):
         if touch.grab_current is self:
             # don't forget to ungrab ourself, or you might have side effects
             touch.ungrab(self)
-            if ((datetime.now() - self.timeStartPress).total_seconds() > 1.2):
+            if ((datetime.now() - self.timeStartPress).total_seconds() > 0.7):
                 print "long press!"
                 self.dispatch('on_long_press',touch)
             else:
