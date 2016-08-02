@@ -233,6 +233,12 @@ class AllInOneGraph(RelativeLayout):
         self.init_variables()
         if self.only_selected:
             self.paint_line_one_entry(button_id=self.log_def['select_button_id'])
+            if 32 < self.n_days < 60:
+                self.paint_line_one_entry_float(button_id=self.log_def['select_button_id'],avg_days_avg = 3,avg_days_int = 3)
+            elif self.n_days <= 130:
+                self.paint_line_one_entry_float(button_id=self.log_def['select_button_id'],avg_days_avg = 7,avg_days_int = 7)
+            elif self.n_days <= 444:
+                self.paint_line_one_entry_float(button_id=self.log_def['select_button_id'],avg_days_avg = 14,avg_days_int = 14)
 
     def init_variables(self):
         self.n_days = self.log_def['n_days']
@@ -412,6 +418,54 @@ ORDER BY datetime(time1);
 """
             time2,time4 = self.paint_line_select(linedef)
 
+    def paint_line_one_entry_float(self,button_id,avg_days_avg = 7,avg_days_int = 7):
+        """
+        SELECT entryname, time1,(round(sum((strftime('%s',time3) - strftime('%s',time2))/3600.0),2)) as value, strftime('%Y-%W', time1 ) AS week, 'sleep' || ROUND(avg(value1),1) AS text
+        FROM log WHERE entryname LIKE 'Schlaf'
+        AND (time1 between date('now', '-n_days_start days') and date('now', '-n_days_stop days'))
+        ORDER BY week;"""
+        linedef = {}
+        linedef['min'] = 0
+        linedef['max'] = 10
+        linedef['width'] = 340
+        linedef['prio'] = 2
+        linedef['zeroifnot'] = 0
+        linedef['group'] = 0
+        linedef['type'] = 'select'
+        linedef['visible'] = 1
+        for i in xrange(1,5):
+            linedef['name'] = "value" + str(i)
+            linedef['select_statement'] = """
+            SELECT entryname, categories, time1, valuename""" + str(i) + """, SUM(value""" + str(i) + """) as value, COUNT(value""" + str(i) + """) as value1, valuename""" + str(i) + """ AS text
+FROM log WHERE  button_id = """ + str(button_id) + """
+AND (time1 between date('now', '-n_days_start days') and date('now', '-n_days_stop days'))
+ORDER BY datetime(time1);
+"""
+            try:
+                self.paint_floating_average_select(linedef,avg_days_avg,avg_days_int)
+            except:
+                pass
+
+
+
+
+            linedef['select_statement'] = """
+        SELECT entryname, time1,(round(sum((strftime('%s',time3) - strftime('%s',time2))/3600.0),2)) as value, strftime('%Y-%W', time1 ) AS week, ROUND(avg(value1),1) AS text
+        FROM log WHERE button_id = """ + str(button_id) + """
+        AND (time1 between date('now', '-n_days_start days') and date('now', '-n_days_stop days'))
+        ORDER BY time1;"""
+
+
+            """
+SELECT entryname as name, categories, time1, time2, time4, valuename1, value""" + str(i) + """  as value, valuename""" + str(i) + """  AS text
+FROM log WHERE button_id = """ + str(button_id) + """
+AND (time1 between date('now', '-n_days days') and date('now', '+2 days'))
+ORDER BY datetime(time1);
+"""
+
+
+
+
     def floating_average_select(self):
         try:
             sqltext = "SELECT * FROM lines " \
@@ -426,7 +480,7 @@ ORDER BY datetime(time1);
         except Exception,e:
             print "error hier...", str(e)
 
-    def paint_floating_average_select(self, description):
+    def paint_floating_average_select(self, description,avg_days_avg = 3,avg_days_int = 2):
         print "floating_average_select.................................."
         #button_id 0, 1entryname,type 2,note 3,categories 4, timename1 5,time1 6,timename2,time2 8,timename3,time3,timename4,time4 12, valuename1 13,value1 14,valuename2 15,value2 16,valuename3,value3 18 ,valuename4,value4 20
 
@@ -440,8 +494,6 @@ ORDER BY datetime(time1);
         min,max = description['min'], description['max']
         c = connlog.cursor() # self.conlog.cursor()
 
-        avg_days_avg = 3
-        avg_days_int = 2
         for dayn in xrange(avg_days_avg,self.n_days,avg_days_int):
             sqltext = description['select_statement'].replace('n_days_start',str(dayn)).replace('n_days_stop',str(dayn - avg_days_avg))
             #print "--------paint_floating_average_select -sqltext:  ", sqltext
@@ -523,7 +575,7 @@ ORDER BY datetime(time1);
             min,max = 0,0
             time4,time2 = '',''
             Logger.error("Paint-line-log-error4.1 |" + str(e) + str(result[0]['value']) + " | " + str(result[0]) + sqltext)
-            return time2,time4
+            #return time2,time4
 
         for entry in result:
             if entry['value'] < min:
@@ -533,7 +585,7 @@ ORDER BY datetime(time1);
 
         for entry in result:
                 #print "row:  ", entry
-            #try:
+            try:
                 #entry = entry[1:]
                 #print "paint_line_select, entry: ", entry
                 #print entry["value"]
@@ -578,8 +630,8 @@ ORDER BY datetime(time1);
                 #points.append((x,y))
                 points.extend((x,y))
 
-            #except Exception, e:
-                #Logger.error("Paint-line-log-error6 " + str(e) + str(entry['value']) + str(entry['text']))
+            except Exception, e:
+                Logger.error("Paint-line-log-error6 " + str(e) + str(entry['value']) + str(entry['text']))
         try:
             label_linename = Label(text=description['name'],font_size=sp(16),size_hint=(None,None),size=(0,0),pos=(x,y-sp(26)))
             self.add_widget(label_linename)
@@ -1663,8 +1715,8 @@ class ButtonOptionsView(BoxLayout):
         slider_wid = CustomKnob() #CustomSlider()
         slider_wid.value = n_days
         slider_wid.ltext = 'n days'
-        slider_wid.min = 1
-        slider_wid.max = 300
+        slider_wid.min = 2
+        slider_wid.max = 500
         self.add_widget(slider_wid)
         self.slider_days = slider_wid
         bt = Button(text="paint")
