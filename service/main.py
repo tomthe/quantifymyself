@@ -3,6 +3,8 @@ from kivy.lib import osc
 from datetime import datetime
 
 from kivy.logger import Logger
+from os.path import exists
+from os import makedirs
 
 from plyer import accelerometer, gyroscope
 
@@ -83,16 +85,23 @@ if __name__ == '__main__':
     #oscid = osc.listen(ipAddr='127.0.0.1', port=serviceport)
     #osc.bind(oscid, some_api_callback, '/some_api')
     i=0
-    output = open(filename, 'a')
-    output.write("\n\nfirst line... test...")
-    output.write("\n first measurement: " + str(get_accelerometer_activity()))
-    output.close()
-    Logger.info(str(get_accelerometer_activity()))
-    output2 = open(filename, 'a')
-
-    gyroOut = open("gyro" + str(datetime.now().date) + ".txt")
-    gyroOut.write("\n\ngyrotest....\n")
+    now = datetime.now()
+    sensorpath = "/storage/sdcard1/quantifyMyself/sensor/"
+    if not exists(sensorpath):
+        makedirs(sensorpath)
+    gyroFilename = sensorpath + "gyro-" + now.strftime("%y-%m-%d") + ".txt"
+    gyroOut = open(gyroFilename,'a+')
+    gyroOut.write("\n\ni;time;gyrodata\n")
     gyroOut.write(str(get_gyroscope_activity()))
+
+    accelFilename = sensorpath+ "accel-" + now.strftime("%y-%m-%d") + ".txt"
+    accelOut = open(accelFilename, 'a+')
+    accelOut.write("\n\nx first line... test...")
+    accelOut.write("\nx first measurementx: " + str(get_accelerometer_activity()))
+    Logger.info(str(get_accelerometer_activity()))
+
+    gyroOut.flush()
+    accelOut.flush()
 
     while True:
         i += 1
@@ -100,15 +109,13 @@ if __name__ == '__main__':
         sleep(60.0)
         now = datetime.now()
         asum, vals = get_accelerometer_activity()
-        Logger.info("before output..." )
-        Logger.info(str(vals))
-        Logger.info("  " + str(i) + "; " + str(now) + ";  " + str(asum) + ";  " + str(vals))
-        output2.write("\n " + str(i) + "; " + str(now) + ";  " + str(round(asum,2))) # + ";  " + str(vals))
+        Logger.info(" accel:  " + str(i) + "; " +  now.strftime("%Y-%m-%d %H:%M:%S") + ";  " + str(round(asum,2)) + ";  " + str(vals))
+        accelOut.write("\n " + str(i) + "; " + now.strftime("%Y-%m-%d %H:%M:%S") + " ;  " + str(round(asum,2)) + " ;")
         Logger.info("after output ")
-        gyrosum,vals = gyroOut()
-        Logger.info(" " + str(i) + "; " + str(now) + ";  " + str(gyrosum) + ";  " + str(vals))
-        gyroOut.write("\n " + str(i) + "; " + str(now) + ";  " + str(round(gyrosum,2)) + ";  ") # + str(vals))
+        gyrosum,vals = get_gyroscope_activity()
+        Logger.info(" " + str(i) + "; " +  now.strftime("%Y-%m-%d %H:%M:%S") + ";  " + str(round(gyrosum,2)) + ";  " + str(vals))
+        gyroOut.write("\n " + str(i) + "; " +  now.strftime("%Y-%m-%d %H:%M:%S") + " ;  " + str(round(gyrosum,2)) + ";  ")
         #output.write("\n-" + str(i) + "; " + str(now))
         if i % 3 == 0:
-            output2.flush()
+            accelOut.flush()
             gyroOut.flush()
