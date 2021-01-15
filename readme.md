@@ -12,4 +12,4 @@ automatically produces insightfull visualizations of your data.
 
 # Download
 
-You can download a release APK for Android on Bitbucket: https://bitbucket.org/tomthe/quantifymyself/downloads/
+You can download a ~~release~~ debug APK for Android on the releases tab here on github: https://github.com/tomthe/quantifymyself/releases/tag/0.3.35
